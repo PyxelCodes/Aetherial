@@ -8,8 +8,8 @@ highlight_code = true
 highlight_theme = "base16-ocean-dark"
 
 [extra]
-logo = "/aeth.jpg"
-favicon = "/aeth.jpg"
+logo = "/aeth.png"
+favicon = "/aeth.png"
 easydocs_logo_always_clickable = true
 
 # For use with offline sites. If set to true template links are generated with the full path indcluding index.html
