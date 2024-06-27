@@ -1,0 +1,45 @@
+{
+  "compilerOptions": {
+      "target": "es2020",
+      "module": "esnext",
+      "lib": [
+          "dom",
+          "es6",
+          "es2017",
+          "esnext.asynciterable"
+      ],
+      "sourceMap": true,
+      "outDir": "dist",
+      "moduleResolution": "node",
+      "removeComments": true,
+      "strict": true,
+      "noImplicitAny": false,
+      "strictFunctionTypes": true,
+      "noFallthroughCasesInSwitch": true,
+      "allowSyntheticDefaultImports": true,
+      "esModuleInterop": true,
+      "emitDecoratorMetadata": true,
+      "experimentalDecorators": true,
+      "resolveJsonModule": true,
+      "baseUrl": ".",
+      "allowJs": true,
+      "skipLibCheck": true,
+      "strictNullChecks": false,
+      "sourceRoot": "./src",
+      "inlineSourceMap": false,
+      "inlineSources": true
+  },
+  "exclude": [
+      "node_modules"
+  ],
+  "include": [
+      "./src/**/*.tsx",
+      "./src/**/*.ts",
+      "./src/**/*.js",
+      "gulpfile.js",
+      "src/migrate.old",
+      "balls.js",
+      "_tools/migrate.ts",
+      "_tools/quickMigrate.js"
+  ]
+}
