@@ -6,6 +6,8 @@ import { CacheManager } from './core/CacheManager';
 import { Cache } from './core/Cache';
 import { SlashCommandBuilder } from './classes/SlashBuilder/SlashCommandBuilder';
 import { Interaction } from './Interaction';
+import { REST } from './rest/rest';
+import { verifyKeyMiddleware } from 'discord-interactions';
 
 export class Client extends EventEmitter {
     commands: Cache<Command>;
@@ -13,6 +15,7 @@ export class Client extends EventEmitter {
     cache: CacheManager;
     ready: boolean;
     token: string;
+    rest: REST;
 
     user: {
         id: string;
@@ -21,10 +24,12 @@ export class Client extends EventEmitter {
         displayAvatarURL(): string;
     };
 
-    constructor() {
+    constructor(token: string, publicKey: string) {
         super();
         this.setMaxListeners(150);
         this.ready = true; // No EventEmitter is being used
+
+        this.rest = new REST(this);
 
         // make neccessary calls
         axios
@@ -35,6 +40,11 @@ export class Client extends EventEmitter {
                 this.user = res.data;
                 this.user.displayAvatarURL = () =>
                     `https://cdn.discordapp.com/avatars/${this.user.id}/${this.user.avatar}.png?size=1024`;
+
+                this.rest.createServer().then(() => {
+                    this.emit('ready');
+                    this.interactionHandler();
+                });
             })
             .catch((err) => {
                 console.error(err);
@@ -44,6 +54,16 @@ export class Client extends EventEmitter {
         this.commands = new Cache();
         this.buttons = new Cache();
         this.cache = new CacheManager();
+    }
+
+    private interactionHandler() {
+        this.rest._app.post(
+            '/interactions',
+            verifyKeyMiddleware(this.publicKey),
+            (req, res) => {
+                this.emit('interactionCreate', new Interaction(req.body, res, this));
+            }
+        )
     }
 
     public async fetchUser(id: string) {
