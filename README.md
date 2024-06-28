@@ -1,6 +1,6 @@
 # Aetherial
 
-## Usage
+## Usage
 
 You will need a token and a public key from the discord developer platform
 
