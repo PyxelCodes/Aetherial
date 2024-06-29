@@ -1,20 +1,20 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import axios, { AxiosError, AxiosResponse } from 'axios';
-import sizeOf from 'buffer-image-size';
-import express from 'express';
-import FormData from 'form-data';
-import { Client } from './Client';
-import { InteractionOptions } from './InteractionOptions';
-import { Message } from './Message';
-import { User } from './User';
+import sizeOf from "buffer-image-size";
+import axios, { AxiosError, AxiosResponse } from "axios";
+import FormData from "form-data";
+import { Client } from "./Client";
+import { InteractionOptions } from "./InteractionOptions";
+import { Message } from "./Message";
+import { User } from "./User";
 import {
     MessageActionRow,
-    MessageComponentData
-} from './classes/MessageActionRow';
-import { MessageAttachment } from './classes/MessageAttachment';
-import { MessageEmbed, MessageEmbedData } from './classes/MessageEmbed';
-import { TextInput } from './classes/Modal';
-import { Snowflake } from './types';
+    MessageComponentData,
+} from "./classes/MessageActionRow";
+import { MessageAttachment } from "./classes/MessageAttachment";
+import { MessageEmbed, MessageEmbedData } from "./classes/MessageEmbed";
+import { TextInput } from "./classes/Modal";
+import { Snowflake } from "./types";
+import fastify, { FastifyReply } from "fastify";
 
 declare global {
     namespace NodeJS {
@@ -26,7 +26,7 @@ declare global {
 
 export class Interaction {
     data: InteractionData;
-    res: express.Response;
+    res: FastifyReply;
     message: Message;
     options: InteractionOptions;
     client: Client;
@@ -44,7 +44,7 @@ export class Interaction {
 
     constructor(
         interactionData: InteractionData,
-        res: express.Response,
+        res: FastifyReply,
         client: Client
     ) {
         this.data = interactionData; // @ts-ignore
@@ -120,12 +120,12 @@ export class Interaction {
             this.data.type == 3 &&
             [
                 3 /* String */, 5 /* User */, 6 /* Role */, 7 /* Mentionable */,
-                8 /* Channel */
+                8 /* Channel */,
             ].includes(this.data.data.component_type)
         );
     }
 
-    async iwr(url: string, type: string = 'get', body?: any) {
+    async iwr(url: string, type: string = "get", body?: any) {
         if (!body) return Interaction.iwr(url, this.client, type);
         else return Interaction.iwr(url, this.client, type, body);
     }
@@ -137,26 +137,26 @@ export class Interaction {
         // Measure API Latency
         let instance = axios.create();
         instance.interceptors.request.use((config) => {
-            config.headers['request-startTime'] = process.hrtime();
+            config.headers["request-startTime"] = process.hrtime();
             return config;
         });
         instance.interceptors.response.use((response) => {
-            const start = response.config.headers['request-startTime'];
+            const start = response.config.headers["request-startTime"];
             const end = process.hrtime(start);
             const milliseconds = Math.round(end[0] * 1000 + end[1] / 1e6);
-            response.headers['X-Response-Time'] = milliseconds;
+            response.headers["X-Response-Time"] = milliseconds;
             return response;
         });
 
         try {
             // IWebRequest to Discord API (Axios)
-            if (type == 'get') {
+            if (type == "get") {
                 req = await instance.get(url, {
-                    headers: { Authorization: `Bot ${client.token}` }
+                    headers: { Authorization: `Bot ${client.token}` },
                 });
             } else {
-                req = await instance[type || 'get'](url, body ?? null, {
-                    headers: { Authorization: `Bot ${client.token}` }
+                req = await instance[type || "get"](url, body ?? null, {
+                    headers: { Authorization: `Bot ${client.token}` },
                 });
             }
         } catch (error: any) {
@@ -182,16 +182,16 @@ export class Interaction {
                     if (!error.response?.data?.message) console.error(error);
                     console.info(
                         `Request URL: ${
-                            url.replace(tokenRegex, '/webhooks/<token>').magenta
+                            url.replace(tokenRegex, "/webhooks/<token>").magenta
                         }`
                     );
                     break;
             }
         }
-        process.lastApiLatency = req.headers['X-Response-Time'];
-        if (req?.headers?.['X-RateLimit-Remaining'])
+        process.lastApiLatency = req.headers["X-Response-Time"];
+        if (req?.headers?.["X-RateLimit-Remaining"])
             console.log(
-                `[IWR] ${req.headers['X-RateLimit-Remaining']}/${req.headers['X-RateLimit-Limit']} requests remaining`
+                `[IWR] ${req.headers["X-RateLimit-Remaining"]}/${req.headers["X-RateLimit-Limit"]} requests remaining`
             );
         return req;
     }
@@ -199,10 +199,10 @@ export class Interaction {
     async showModal(data: TextInput) {
         await this.iwr(
             `${this.url}/interactions/${this.data.id}/${this.data.token}/callback`,
-            'post',
+            "post",
             {
                 type: 0x9, //0x9 type -> APPLICATION_MODAL,
-                data
+                data,
             }
         );
     }
@@ -211,7 +211,7 @@ export class Interaction {
         try {
             let req = await this.iwr(
                 `${this.url}/webhooks/${this.client.user.id}/${this.data.token}/messages/@original`,
-                'get'
+                "get"
             );
 
             try {
@@ -226,14 +226,18 @@ export class Interaction {
                 return req.data;
             } catch (error) {
                 console.error(
-                    `Error in Interaction.fetchReply [PARSER] -> ${(error as AxiosError).message}\n ${error}`
+                    `Error in Interaction.fetchReply [PARSER] -> ${
+                        (error as AxiosError).message
+                    }\n ${error}`
                 );
                 console.warn(`HTTP ${req?.status} -> ${req?.data}`);
                 return null;
             }
         } catch (error) {
             console.error(
-                `Error in Interaction.fetchReply: ${(error as AxiosError)?.code}\n ${error}`
+                `Error in Interaction.fetchReply: ${
+                    (error as AxiosError)?.code
+                }\n ${error}`
             );
             return null;
         }
@@ -244,7 +248,11 @@ export class Interaction {
 
         if (this.replied) {
             console.warn(
-                `${'[REGRESSION]'.red} ${'[WARN]'.yellow} Interaction already replied. Falling back to editReply() -> ${this.commandName?.magenta}`
+                `${"[REGRESSION]".red} ${
+                    "[WARN]".yellow
+                } Interaction already replied. Falling back to editReply() -> ${
+                    this.commandName?.magenta
+                }`
             );
             await this.editReply(data);
             if (data.fetchReply) return await this.fetchReply();
@@ -263,9 +271,9 @@ export class Interaction {
             );
         } else {
             await Promise.resolve(
-                this.res.json({
+                this.res.send({
                     type: 0x4, // 0x4 type -> CHANNEL_MESSAGE_WITH_SOURCE
-                    data: Interaction.parseMessage(data)
+                    data: Interaction.parseMessage(data),
                 })
             );
         }
@@ -285,7 +293,7 @@ export class Interaction {
                 );
             await this.iwr(
                 `${this.url}/webhooks/${this.client.user.id}/${this.data.token}/messages/@original`,
-                'patch',
+                "patch",
                 data
             );
         } catch (error) {
@@ -297,14 +305,14 @@ export class Interaction {
     async deleteReply() {
         await this.iwr(
             `${this.url}/webhooks/${this.client.user.id}/${this.data.token}/messages/@original`,
-            'delete'
+            "delete"
         );
     }
 
     async update(data: InteractionReplyData) {
-        this.res.json({
+        this.res.send({
             type: 0x7, // 0x7 type -> UPDATE_MESSAGE
-            data: Interaction.parseMessage(data)
+            data: Interaction.parseMessage(data),
         });
     }
 
@@ -312,7 +320,7 @@ export class Interaction {
         if (data.ephemeral) data.flags = 64;
         await this.iwr(
             `${this.url}/webhooks/${this.client.user.id}/${this.data.token}`,
-            'post',
+            "post",
             Interaction.parseMessage(data)
         );
         if (data.fetchReply) return await this.fetchReply();
@@ -320,15 +328,15 @@ export class Interaction {
     }
 
     async defer() {
-        this.res.json({
-            type: 0x5 // 0x5 type -> DEFERRED_CHANNEL_MESSAGE_WITH_SOURCE
+        this.res.send({
+            type: 0x5, // 0x5 type -> DEFERRED_CHANNEL_MESSAGE_WITH_SOURCE
         });
         this.deffered = true;
     }
 
     async deferUpdate() {
-        this.res.json({
-            type: 0x6 // 0x6 type -> DEFERRED_UPDATE_MESSAGE
+        this.res.send({
+            type: 0x6, // 0x6 type -> DEFERRED_UPDATE_MESSAGE
         });
         this.deffered = true;
     }
@@ -342,15 +350,15 @@ export class Interaction {
         // Parse embeds, components and attachments
 
         for (let i in msg) {
-            if (i === 'embeds' || i === 'components' || i === 'attachments') {
+            if (i === "embeds" || i === "components" || i === "attachments") {
                 data[i] = [];
 
                 if (msg[i].length > 0 && msg[i][0] == undefined) continue;
 
                 for (let e of msg[i]) {
-                    if (i === 'embeds')
+                    if (i === "embeds")
                         data.embeds.push(Interaction.parseEmbed(e));
-                    if (i === 'components') data.components.push(e.toJSON());
+                    if (i === "components") data.components.push(e.toJSON());
                     //if(i === 'attachments') data.attachments.push(e.toJSON());
                 }
             } else data[i] = msg[i];
@@ -381,24 +389,24 @@ export class Interaction {
                 name: file.name,
                 id: j,
                 size: Buffer.byteLength(file.attachment),
-                content_type: 'image/png',
+                content_type: "image/png",
                 height: size.height,
-                width: size.width
+                width: size.width,
             });
 
             j++;
         }
 
         // @ts-ignore
-        if (process.flags.state('debug'))
+        if (process.flags.state("debug"))
             // @ts-ignore
             console.debug({ attachments: body.attachments, form });
 
-        form.append('payload_json', JSON.stringify(body));
+        form.append("payload_json", JSON.stringify(body));
 
         let isIterable = (obj: any) => {
             if (obj == null) return false;
-            return typeof obj[Symbol.iterator] === 'function';
+            return typeof obj[Symbol.iterator] === "function";
         };
 
         if (!isIterable(body.files)) body.files = [];
@@ -406,8 +414,8 @@ export class Interaction {
         let i = 0;
         for (let file of body.files) {
             form.append(`files[${i}]`, file.attachment, {
-                filename: file.name.replace('\r\n', '').replace('\n', ''),
-                contentType: 'image/png'
+                filename: file.name.replace("\r\n", "").replace("\n", ""),
+                contentType: "image/png",
             });
             i++;
         }
@@ -418,14 +426,13 @@ export class Interaction {
         let req;
         try {
             req = await axios({
-                method: 'patch',
+                method: "patch",
                 url: url,
                 data: form,
                 headers: {
-                    'Content-Type': `multipart/form-data; boundary=${form.getBoundary()}`
-                }
+                    "Content-Type": `multipart/form-data; boundary=${form.getBoundary()}`,
+                },
             });
-
         } catch (error) {
             console.error(`[Axios IWR^FD] Error while uploading image`);
             console.log(error);
@@ -475,7 +482,7 @@ export class TextChannel {
     async send(data: InteractionReplyData) {
         let res = await this.interaction.iwr(
             `https://discord.com/api/v9/channels/${this.id}/messages`,
-            'post',
+            "post",
             Interaction.parseMessage(data)
         );
 
@@ -484,7 +491,7 @@ export class TextChannel {
                 `[TextChannel::send] HTTP 403 Forbidden -> POST /channels/${this.id}/messages`
             );
         if (!res) {
-            console.warn('NO Response from TextChannel.send()');
+            console.warn("NO Response from TextChannel.send()");
             console.log({ data });
             return null;
         }

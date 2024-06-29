@@ -36,10 +36,5 @@
       "./src/**/*.tsx",
       "./src/**/*.ts",
       "./src/**/*.js",
-      "gulpfile.js",
-      "src/migrate.old",
-      "balls.js",
-      "_tools/migrate.ts",
-      "_tools/quickMigrate.js"
   ]
 }

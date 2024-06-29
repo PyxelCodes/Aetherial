@@ -1,21 +1,24 @@
-import axios from 'axios';
-import { EventEmitter } from 'events';
-import { Message } from './Message';
-import { User } from './User';
-import { CacheManager } from './core/CacheManager';
-import { Cache } from './core/Cache';
-import { SlashCommandBuilder } from './classes/SlashBuilder/SlashCommandBuilder';
-import { Interaction } from './Interaction';
-import { REST } from './rest/rest';
-import { verifyKeyMiddleware } from 'discord-interactions';
+import axios from "axios";
+import { EventEmitter } from "events";
+import { Message } from "./Message";
+import { User } from "./User";
+import { CacheManager } from "./core/CacheManager";
+import { Cache } from "./core/Cache";
+import { SlashCommandBuilder } from "./classes/SlashBuilder/SlashCommandBuilder";
+import { Interaction, InteractionData } from "./Interaction";
+import { REST } from "./rest/rest";
 
+export declare interface Client {
+    on(event: 'ready', listener: () => void): this;
+    on(event: 'interactionCreate', listener: (interaction: Interaction) => void): this;
+}
 export class Client extends EventEmitter {
     commands: Cache<Command>;
     buttons: Cache<Button>;
     cache: CacheManager;
     ready: boolean;
     token: string;
-    publicKey: string
+    publicKey: string;
     rest: REST;
 
     user: {
@@ -39,7 +42,7 @@ export class Client extends EventEmitter {
         // make neccessary calls
         axios
             .get(`https://discord.com/api/v9/users/@me`, {
-                headers: { Authorization: `Bot ${this.token}` }
+                headers: { Authorization: `Bot ${this.token}` },
             })
             .then((res) => {
                 this.user = res.data;
@@ -47,8 +50,7 @@ export class Client extends EventEmitter {
                     `https://cdn.discordapp.com/avatars/${this.user.id}/${this.user.avatar}.png?size=1024`;
 
                 this.rest.createServer().then(() => {
-                    this.emit('ready');
-                    this.interactionHandler();
+                    this.emit("ready");
                 });
             })
             .catch((err) => {
@@ -61,14 +63,13 @@ export class Client extends EventEmitter {
         this.cache = new CacheManager();
     }
 
-    private interactionHandler() {
-        this.rest._app.post(
-            '/interactions',
-            verifyKeyMiddleware(this.publicKey),
-            (req, res) => {
-                this.emit('interactionCreate', new Interaction(req.body, res, this));
-            }
-        )
+    public interactionHandler() {
+        this.rest._app.post("/interactions", async (req, res) => {
+            this.emit(
+                "interactionCreate",
+                new Interaction(req.body as InteractionData, res, this)
+            );
+        });
     }
 
     public async fetchUser(id: string) {
@@ -78,7 +79,7 @@ export class Client extends EventEmitter {
 
         try {
             user = await axios.get(`https://discord.com/api/v9/users/${id}`, {
-                headers: { Authorization: `Bot ${this.token}` }
+                headers: { Authorization: `Bot ${this.token}` },
             });
         } catch (error) {
             console.error(
