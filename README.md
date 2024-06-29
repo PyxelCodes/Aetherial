@@ -30,7 +30,42 @@ module.exports = {
 }
 ```
 
+Using the in-built command loader which loads every command file in a subdirectory
+
+- index.js
+- commands
+    - info
+        - ping.js
+
 ```js
-// Appending this to the initial file will load the commands
 Aetherial.loadCommands(client.commands);
+```
+
+Using the in-built command registering function automatically registers the slash commands with discords API.
+
+This function should only be called when there is a change to the command name list
+Calling this once every bot start is okay but not ideal.
+
+```js
+Aetherial.loadCommands(client.commands);
+Aetherial.registerCommands(client.commands, client.token);
+```
+
+Running the bot locally requires a Software called ngrok.
+ngrok tunnels local http requests to a static url you can enter on the discord developer page under "INTERACTIONS ENDPOINT URL"
+
+make sure to add the /interactions at the end of the URL.
+
+for example: https://name.ngrok-free.app/interactions
+
+### Using Embeds
+
+```js
+interaction.reply({
+    embeds: [
+        new Aetherial.MessageEmbed()
+            .setDescription(`This is an Embed!`)
+            .setColor(0xFF0000)
+    ]
+})
 ```
