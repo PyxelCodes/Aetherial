@@ -15,6 +15,7 @@ export class Client extends EventEmitter {
     cache: CacheManager;
     ready: boolean;
     token: string;
+    publicKey: string
     rest: REST;
 
     user: {
@@ -26,6 +27,10 @@ export class Client extends EventEmitter {
 
     constructor(token: string, publicKey: string) {
         super();
+
+        this.token = token;
+        this.publicKey = publicKey;
+
         this.setMaxListeners(150);
         this.ready = true; // No EventEmitter is being used
 

@@ -7,7 +7,7 @@ export class REST {
     public _app: express.Application;
     public _client: Client;
     private _globalRouter: express.Router;
-    private _port: 2555;
+    private _port: number = 2555;
 
     constructor(client: Client, portOverride?: number) {
         if(portOverride) this._port = portOverride;
@@ -29,7 +29,7 @@ export class REST {
     public async createServer() {
         return new Promise((resolve) => {
             http
-                .createserver({}, this._app)
+                .createServer({}, this._app)
                 .listen(this._port, () => resolve(0))
         })
     }
