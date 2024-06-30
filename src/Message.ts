@@ -1,6 +1,5 @@
 import { Client } from './Client';
 import { Interaction, InteractionReplyData } from './Interaction';
-import { Snowflake } from './types';
 
 export class Message {
     data: MessageData;
@@ -102,24 +101,24 @@ export class Message {
     get content(): string {
         return this.data.content;
     }
-    get channel(): Snowflake {
+    get channel(): string {
         return this.data.channel_id;
     }
-    get guild(): Snowflake {
+    get guild(): string {
         return this.data.guild_id;
     }
 }
 
 export interface MessageData {
-    id: Snowflake;
+    id: string;
     type: number;
     content: string;
-    channel_id: Snowflake;
+    channel_id: string;
     author: MessageAuthor;
     attachments: MessageAttachment[];
     embeds: MessageEmbed[];
-    mentions: Snowflake[];
-    mention_roles: Snowflake[];
+    mentions: string[];
+    mention_roles: string[];
     pinned: boolean;
     mention_everyone: boolean;
     tts: boolean;
@@ -127,14 +126,14 @@ export interface MessageData {
     edited_timestamp: string;
     flags: number;
     components: MessageComponent[];
-    application_id: Snowflake;
-    webhhook_id: Snowflake;
+    application_id: string;
+    webhhook_id: string;
     interaction: MessageInteraction;
-    guild_id?: Snowflake;
+    guild_id?: string;
 }
 
 declare interface MessageAuthor {
-    id: Snowflake;
+    id: string;
     name: string;
     discriminator: string;
     avatar: string;
@@ -151,7 +150,7 @@ declare interface MessageEmbed {
 }
 declare interface MessageComponent {}
 declare interface MessageInteraction {
-    id: Snowflake;
+    id: string;
     type: number;
     name: string;
     user: MessageAuthor;

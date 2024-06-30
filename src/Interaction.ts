@@ -13,7 +13,6 @@ import {
 import { MessageAttachment } from "./classes/MessageAttachment";
 import { MessageEmbed, MessageEmbedData } from "./classes/MessageEmbed";
 import { TextInput } from "./classes/Modal";
-import { Snowflake } from "./types";
 import fastify, { FastifyReply } from "fastify";
 
 declare global {
@@ -475,7 +474,7 @@ export class TextChannel {
         this.id = parent.data.channel_id;
     }
 
-    set channel_id(id: Snowflake) {
+    set channel_id(id: string) {
         this.id = id;
     }
 
@@ -501,17 +500,17 @@ export class TextChannel {
 }
 
 export interface InteractionData {
-    id: Snowflake; // Unique ID of command
+    id: string; // Unique ID of command
     type?: number;
-    application_id: Snowflake;
-    guild_id?: Snowflake;
-    channel_id?: Snowflake;
+    application_id: string;
+    guild_id?: string;
+    channel_id?: string;
     locale: string;
     options?: InteractionAutocompleteOption[];
     data: {
-        guild_id: Snowflake;
+        guild_id: string;
         name: string;
-        id: Snowflake;
+        id: string;
         options?: InteractionOption[];
         type: number;
         component_type?: number;
@@ -520,7 +519,7 @@ export interface InteractionData {
     default_member_permissions?: string[];
     dm_permission?: boolean;
     default_permission?: boolean;
-    version: Snowflake;
+    version: string;
     token: string;
     member: {
         avatar: string;
@@ -532,11 +531,11 @@ export interface InteractionData {
         nick: string;
         pending: boolean;
         permissions: string;
-        roles: Snowflake[];
+        roles: string[];
         user: {
             avatar: string;
             discriminator: string;
-            id: Snowflake;
+            id: string;
             public_flags: number;
             username: string;
             tag: string;
@@ -548,7 +547,7 @@ export interface InteractionData {
         style: number;
         label: string;
         emoji: {
-            id: Snowflake;
+            id: string;
             name: string;
             animated: boolean;
         };
@@ -561,7 +560,7 @@ export interface InteractionData {
             style: number;
             label: string;
             emoji: {
-                id: Snowflake;
+                id: string;
                 name: string;
                 animated: boolean;
             };

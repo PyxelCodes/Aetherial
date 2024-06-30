@@ -1,16 +1,16 @@
 {
   "name": "aetherial",
-  "version": "1.0.2",
+  "version": "1.0.6",
   "main": "./dist/index.js",
   "module": "./dist/index.mjs",
-  "types": "./dist/index.d.ts",
+  "types": "./dist/types/index.d.ts",
   "files": [
     "dist"
   ],
   "license": "MIT",
   "scripts": {
     "build": "tsc",
-    "publish": "yarn build && npm publish"
+    "publish-npm": "yarn build && npm publish"
   },
   "devDependencies": {
     "@swc/core": "^1.6.6",

@@ -26,7 +26,6 @@ export {
 export { InteractionOptions } from "./InteractionOptions";
 export { Message } from "./Message";
 export { User } from "./User";
-export { Snowflake } from "./types.d";
 export { WebhookClient } from "./WebhookClient";
 export { loadCommands } from "./loader/loadCommands";
 export { registerCommands } from "./rest/registerCommands";
