@@ -1,5 +1,6 @@
 import axios from 'axios';
 import { ChildProcess, fork } from 'child_process';
+import { IntentBuilder } from '../classes/IntentBuilder';
 
 const sleep = (ms = 0) => new Promise((resolve) => setTimeout(resolve, ms));
 
@@ -8,10 +9,10 @@ export class ShardingManager {
 
     constructor(
         public token: string,
-        public intents: number
+        public intents: number | IntentBuilder
     ) {
         this.token = token;
-        this.intents = intents;
+        this.intents = intents instanceof IntentBuilder ? intents.toNumber() : intents;
     }
 
     async getShardCount() {

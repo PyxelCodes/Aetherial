@@ -29,3 +29,4 @@ export { User } from "./User";
 export { WebhookClient } from "./WebhookClient";
 export { loadCommands } from "./loader/loadCommands";
 export { registerCommands } from "./rest/registerCommands";
+export { IntentBuilder } from "./classes/IntentBuilder";
