@@ -557,21 +557,6 @@ acorn@^8.11.0, acorn@^8.4.1:
   resolved "https://registry.yarnpkg.com/acorn/-/acorn-8.12.0.tgz#1627bfa2e058148036133b8d9b51a700663c294c"
   integrity sha512-RTvkC4w+KNXrM39/lWCUaG0IbRkWdCv7W/IOW9oU6SawyxulvkQy5HQPVTKxEjczcUvapcrw3cFx/60VN/NRNw==
 
-aetherial@^1.0.5:
-  version "1.0.5"
-  resolved "https://registry.yarnpkg.com/aetherial/-/aetherial-1.0.5.tgz#48c73a46f19f4d96dd89696870ff6a7468246558"
-  integrity sha512-mr2DXumgrRQ1QRXezUyvF0d8K/f7hhFaSw2yn9lGFdrHmsPLM5LweN4+MhBsRs0LZnQlAZ35x6K2SuxMc8KpZw==
-  dependencies:
-    "@fastify/cors" "^9.0.1"
-    "@fastify/express" "^3.0.0"
-    axios "^1.7.2"
-    buffer-image-size "^0.6.4"
-    colors "^1.4.0"
-    discord-interactions "^4.0.0"
-    fastify "^4.28.1"
-    fastify-raw-body "^4.3.0"
-    ws "^8.17.1"
-
 ajv-formats@^2.1.1:
   version "2.1.1"
   resolved "https://registry.yarnpkg.com/ajv-formats/-/ajv-formats-2.1.1.tgz#6e669400659eb74973bbf2e33327180a0996b520"
@@ -2222,10 +2207,10 @@ wrap-ansi@^8.1.0:
     string-width "^5.0.1"
     strip-ansi "^7.0.1"
 
-ws@^8.17.1:
-  version "8.17.1"
-  resolved "https://registry.yarnpkg.com/ws/-/ws-8.17.1.tgz#9293da530bb548febc95371d90f9c878727d919b"
-  integrity sha512-6XQFvXTkbfUOZOKKILFG1PDK2NDQs4azKQl26T0YS5CxqWLgXajbPZ+h4gZekJyRqFU8pvnbAbbs/3TgRPy+GQ==
+ws@^8.18.0:
+  version "8.18.0"
+  resolved "https://registry.yarnpkg.com/ws/-/ws-8.18.0.tgz#0d7505a6eafe2b0e712d232b42279f53bc289bbc"
+  integrity sha512-8VbfWfHLbbwu3+N6OKsOMpBdT4kXPDDB9cJk2bJ6mh9ucxdlnNvH1e+roYkKmN9Nxw2yjz7VzeO9oOz2zJ04Pw==
 
 yaml@^2.3.4:
   version "2.4.5"
