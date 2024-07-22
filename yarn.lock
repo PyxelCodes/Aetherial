@@ -484,10 +484,10 @@
   resolved "https://registry.yarnpkg.com/@types/mime/-/mime-1.3.5.tgz#1ef302e01cf7d2b5a0fa526790c9123bf1d06690"
   integrity sha512-/pyBZWSLD2n0dcHE3hq8s8ZvcETHtEuF+3E7XVt0Ig2nvsVQXdghHVcEkIWjy9A0wKfTn97a/PSDYohKIlnP/w==
 
-"@types/node@*", "@types/node@^20.14.9":
-  version "20.14.9"
-  resolved "https://registry.yarnpkg.com/@types/node/-/node-20.14.9.tgz#12e8e765ab27f8c421a1820c99f5f313a933b420"
-  integrity sha512-06OCtnTXtWOZBJlRApleWndH4JsRVs1pDCc8dLSQp+7PpUpX3ePdHyeNSFTeSe7FtKyQkrlPvHwJOW3SLd8Oyg==
+"@types/node@*", "@types/node@^20.14.11":
+  version "20.14.11"
+  resolved "https://registry.yarnpkg.com/@types/node/-/node-20.14.11.tgz#09b300423343460455043ddd4d0ded6ac579b74b"
+  integrity sha512-kprQpL8MMeszbz6ojB5/tU8PLN4kesnN8Gjzw349rDlNgsSzg90lAVj3llK99Dh7JON+t9AuscPPFW6mPbTnSA==
   dependencies:
     undici-types "~5.26.4"
 
@@ -556,21 +556,6 @@ acorn@^8.11.0, acorn@^8.4.1:
   version "8.12.0"
   resolved "https://registry.yarnpkg.com/acorn/-/acorn-8.12.0.tgz#1627bfa2e058148036133b8d9b51a700663c294c"
   integrity sha512-RTvkC4w+KNXrM39/lWCUaG0IbRkWdCv7W/IOW9oU6SawyxulvkQy5HQPVTKxEjczcUvapcrw3cFx/60VN/NRNw==
-
-aetherial@^1.0.5:
-  version "1.0.5"
-  resolved "https://registry.yarnpkg.com/aetherial/-/aetherial-1.0.5.tgz#48c73a46f19f4d96dd89696870ff6a7468246558"
-  integrity sha512-mr2DXumgrRQ1QRXezUyvF0d8K/f7hhFaSw2yn9lGFdrHmsPLM5LweN4+MhBsRs0LZnQlAZ35x6K2SuxMc8KpZw==
-  dependencies:
-    "@fastify/cors" "^9.0.1"
-    "@fastify/express" "^3.0.0"
-    axios "^1.7.2"
-    buffer-image-size "^0.6.4"
-    colors "^1.4.0"
-    discord-interactions "^4.0.0"
-    fastify "^4.28.1"
-    fastify-raw-body "^4.3.0"
-    ws "^8.17.1"
 
 ajv-formats@^2.1.1:
   version "2.1.1"
