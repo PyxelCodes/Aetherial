@@ -55,7 +55,6 @@ export class InteractionOptions {
     }
 
     getChannel(name: string) {
-        console.log(this.data.options[0].options);
         // supplies resolved channel!
         let id =
             this.data.options?.find((x) => x.name === name)?.value ??

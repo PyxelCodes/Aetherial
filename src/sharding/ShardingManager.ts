@@ -44,6 +44,7 @@ export class ShardingManager extends EventEmitter {
                     `${i}`,
                     `${shardCount}`,
                     `${this.token}`,
+                    `${this.intents}`
                 ]
             });
             cp.on('error', () => {

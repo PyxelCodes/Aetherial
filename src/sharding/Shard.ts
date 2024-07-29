@@ -20,8 +20,9 @@ export class Shard {
     private shard: [number, number];
     public shardId: number;
     public token: string;
+    public intents: number;
 
-    constructor(shardId: number, shardCount: number, token: string) {
+    constructor(shardId: number, shardCount: number, token: string, intents: number) {
         this.token = token;
         this.wss = new WebSocket(this.wssUrl);
 
@@ -32,6 +33,7 @@ export class Shard {
 
         this.shard = [shardId, shardCount];
         this.shardId = shardId;
+        this.intents = intents;
 
         this.wss.on("message", this.message.bind(this));
     }
@@ -47,7 +49,7 @@ export class Shard {
             this.sendMessage(
                 new OP_IDENTIFY()
                     .setToken(this.token)
-                    .setIntents(1 << 0)
+                    .setIntents(this.intents)
                     .setShard(this.shard)
                     .op()
             );
@@ -60,7 +62,6 @@ export class Shard {
 
     private parseOp(data: IDiscordGatewayOp) {
         if (data.s) this.lastACK = data.s;
-        console.log(data);
         switch (data.op) {
             case 10: // HELLO
                 return new OP_HELLO(data);
@@ -69,9 +70,11 @@ export class Shard {
                     case "GUILD_CREATE":
                         return new OP_GUILD_CREATE(data, this.guilds);
                     case "READY":
-                        
                         new OP_READY(data, this.guilds);
-                        this.requestGuildMembers("1256598531662151680");
+                        setTimeout((() => {
+                            this.requestGuildMembers("1256598531662151680");
+                        }).bind(this), 2500);
+                        
                         break;
                     default:
                         break;
@@ -89,14 +92,16 @@ export class Shard {
             d: {
                 guild_id: guildId,
                 limit: 0,
+                query: "",
                 presences: true,
-                nonce: "aetherial"
-            }
+                nonce: "12",
+            },
+            s: null,
+            t: null,
         });
     }
 
     private sendMessage(data: IDiscordGatewayOp) {
-        console.log(data);
         this.wss.send(JSON.stringify(data));
     }
 
@@ -127,8 +132,21 @@ interface IDiscordGatewayOp {
 
 // SHARD INIT
 
-new Shard(
-    parseInt(process.argv[2]),
-    parseInt(process.argv[3]),
-    process.argv[4]
-);
+// determine if this is a shard
+
+if (
+    process.argv[2] &&
+    process.argv[3] &&
+    !isNaN(parseInt(process.argv[2])) &&
+    !isNaN(parseInt(process.argv[3])) &&
+    process.argv[4] &&
+    process.argv[5] &&
+    !isNaN(parseInt(process.argv[5]))
+) { // Start shard
+    new Shard(
+        parseInt(process.argv[2]),
+        parseInt(process.argv[3]),
+        process.argv[4],
+        parseInt(process.argv[5])
+    );
+}

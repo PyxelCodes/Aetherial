@@ -12,7 +12,8 @@ export {
 
 export { Cache } from "./core/Cache";
 
-export { Shard } from "./sharding/Shard";
+// this kinda breaks the shardingmanager
+//export { Shard } from "./sharding/Shard";
 export { ShardingManager } from "./sharding/ShardingManager";
 
 export { Client, Command } from "./Client";
