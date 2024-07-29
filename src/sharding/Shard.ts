@@ -1,14 +1,15 @@
 import "colors";
-import { writeFileSync } from "fs";
-import { join } from "path";
 import { RawData, WebSocket } from "ws";
 import { OP_GUILD_CREATE } from "./events/GUILD_CREATE";
 import { OP_HELLO } from "./events/HELLO";
 import { OP_IDENTIFY } from "./events/IDENTIFY";
 import { OP_READY } from "./events/READY";
-import { query } from "express";
+import { PresenceState } from "./classes/PresenceState";
+import { IMember, OP_GUILD_MEMBER_CHUNK } from "./events/GUILD_MEMBER_CHUNK";
+import { OP_PRESENCE_UPDATE } from "./events/PRESENCE_UPDATE";
+import { EventEmitter } from "events";
 
-export class Shard {
+export class Shard extends EventEmitter {
     private wss: WebSocket;
     private wssUrl = `wss://gateway.discord.gg/?v=10&encoding=json`;
 
@@ -16,33 +17,22 @@ export class Shard {
     private heartbeatInterval: number = 40_000; // default 40s
     private lastACK: number = null;
 
-    private guilds = new Set<string>();
+    public guilds = new Map<string, Guild>();
+    public presences = new Map<string, PresenceState>();
+
     private shard: [number, number];
     public shardId: number;
     public token: string;
     public intents: number;
 
-    constructor(shardId: number, shardCount: number, token: string, intents: number) {
-        this.token = token;
-        this.wss = new WebSocket(this.wssUrl);
-
-        this.wss.on("open", () => {
-            /* TODO */
-            //process.send({ type: "ready", data: { shardId, shardCount } });
-        });
-
-        this.shard = [shardId, shardCount];
-        this.shardId = shardId;
-        this.intents = intents;
-
-        this.wss.on("message", this.message.bind(this));
+    constructor() {
+        super();
     }
 
     private message(data: RawData) {
         let o = this.parseOp(this.parse(data));
 
         if (o instanceof OP_GUILD_CREATE) {
-            this.guilds.add(o.data.d.id);
         } else if (o instanceof OP_HELLO) {
             this.heartbeatInterval = o.heartbeatInterval();
             this.startHeartbeat();
@@ -68,14 +58,39 @@ export class Shard {
             case 0: {
                 switch (data.t) {
                     case "GUILD_CREATE":
-                        return new OP_GUILD_CREATE(data, this.guilds);
+                        return new OP_GUILD_CREATE(data, this.guilds, this.presences);
                     case "READY":
                         new OP_READY(data, this.guilds);
-                        setTimeout((() => {
-                            this.requestGuildMembers("1256598531662151680");
-                        }).bind(this), 2500);
-                        
+                        this.emit("shardReady", this.shard);
+                        if ((this.intents & 1 << 1) == 1 << 1) { // check for GUILD_MEMBERS intent
+                            setTimeout(
+                                (() => {
+                                    // TODO this is horrible
+                                    let guild_ids = Array.from(
+                                        this.guilds.keys()
+                                    );
+                                    let interval = setInterval(() => {
+                                        let next = guild_ids.shift();
+                                        if (!next)
+                                            return clearInterval(interval);
+                                        //console.log(`Requesting guild members for ${next}`);
+                                        this.requestGuildMembers(next);
+                                    }, 250);
+                                }).bind(this),
+                                2500
+                            );
+                        }
                         break;
+
+                    case "GUILD_MEMBER_CHUNK":
+                        return new OP_GUILD_MEMBER_CHUNK(
+                            data,
+                            this.guilds,
+                            this.presences,
+                            this.hasPresenceIntent()
+                        );
+                    case "PRESENCE_UPDATE":
+                        return new OP_PRESENCE_UPDATE(data, this.presences);
                     default:
                         break;
                 }
@@ -93,12 +108,16 @@ export class Shard {
                 guild_id: guildId,
                 limit: 0,
                 query: "",
-                presences: true,
+                presences: this.hasPresenceIntent() ? true : false,
                 nonce: "12",
             },
             s: null,
             t: null,
         });
+    }
+
+    private hasPresenceIntent() {
+        return (this.intents & (1 << 8)) == 1 << 8;
     }
 
     private sendMessage(data: IDiscordGatewayOp) {
@@ -120,6 +139,25 @@ export class Shard {
             }, this.heartbeatInterval);
         }, Math.random() * this.heartbeatInterval);
     }
+
+    public login(token: string) {
+        this.token = token;
+        this.wss = new WebSocket(this.wssUrl);
+
+        this.wss.on("open", () => {
+            this.emit("wssReady", null);
+        });
+
+        let shardId = parseInt(process.argv[2]);
+        let shardCount = parseInt(process.argv[3]);
+        let intents = parseInt(process.argv[4]);
+
+        this.shard = [shardId, shardCount];
+        this.shardId = shardId;
+        this.intents = intents;
+
+        this.wss.on("message", this.message.bind(this));
+    }
 }
 
 interface IDiscordGatewayOp {
@@ -130,23 +168,8 @@ interface IDiscordGatewayOp {
     s?: number;
 }
 
-// SHARD INIT
-
-// determine if this is a shard
-
-if (
-    process.argv[2] &&
-    process.argv[3] &&
-    !isNaN(parseInt(process.argv[2])) &&
-    !isNaN(parseInt(process.argv[3])) &&
-    process.argv[4] &&
-    process.argv[5] &&
-    !isNaN(parseInt(process.argv[5]))
-) { // Start shard
-    new Shard(
-        parseInt(process.argv[2]),
-        parseInt(process.argv[3]),
-        process.argv[4],
-        parseInt(process.argv[5])
-    );
+export interface Guild {
+    id: string;
+    members: IMember[];
+    presences: PresenceState[];
 }
