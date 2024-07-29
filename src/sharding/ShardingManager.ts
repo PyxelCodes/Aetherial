@@ -1,16 +1,22 @@
 import axios from 'axios';
 import { ChildProcess, fork } from 'child_process';
 import { IntentBuilder } from '../classes/IntentBuilder';
+import { EventEmitter } from 'events';
 
 const sleep = (ms = 0) => new Promise((resolve) => setTimeout(resolve, ms));
 
-export class ShardingManager {
+export declare interface ShardingManager {
+    on(event: 'shardReady', listener: (data: { shardId: number, shardCount: number }) => void): this;
+}
+export class ShardingManager extends EventEmitter {
     shards: Map<number, ChildProcess> = new Map();
 
     constructor(
         public token: string,
         public intents: number | IntentBuilder
     ) {
+        super();
+
         this.token = token;
         this.intents = intents instanceof IntentBuilder ? intents.toNumber() : intents;
     }
@@ -34,7 +40,7 @@ export class ShardingManager {
             let cp = fork('', {
                 stdio: 'inherit',
                 execArgv: [
-                    `./dist/backend/sharding/Shard.js`,
+                    `${__dirname}/Shard.js`,
                     `${i}`,
                     `${shardCount}`,
                     `${this.token}`,
@@ -43,6 +49,16 @@ export class ShardingManager {
             cp.on('error', () => {
                 cp.kill();
             });
+            cp.on('message', (msg: any /* do this type later */) => {
+                switch (msg.type) {
+                    case 'ready':
+                        this.emit('shardReady', msg.data);
+                        break;
+                
+                    default:
+                        break;
+                }
+            })
 
             this.shards.set(i, cp);
             await sleep(5000);

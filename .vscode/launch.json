@@ -1,0 +1,16 @@
+{
+    "version": "0.2.0",
+    "configurations": [
+      {
+        "name": "start",
+        "type": "node",
+        "request": "launch",
+        "runtimeExecutable": "node",
+        "preLaunchTask": "npm: test",
+        "program": "${workspaceFolder}/test/dist-test/test/src/index.js",
+        "cwd": "${workspaceRoot}",
+        "internalConsoleOptions": "openOnSessionStart",
+        "runtimeVersion": "20",
+      }
+    ]
+  }

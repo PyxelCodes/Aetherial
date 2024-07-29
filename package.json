@@ -10,7 +10,8 @@
   "license": "MIT",
   "scripts": {
     "build": "tsc",
-    "publish-npm": "yarn build && npm publish"
+    "publish-npm": "yarn build && npm publish",
+    "test": "cd test && tsc"
   },
   "devDependencies": {
     "@swc/core": "^1.6.6",
