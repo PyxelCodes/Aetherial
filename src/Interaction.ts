@@ -348,6 +348,11 @@ export class Interaction {
         let data: InteractionReplyFormatted = {} as InteractionReplyFormatted;
         // Parse embeds, components and attachments
 
+        //fallback
+        if(typeof msg === 'string') {
+            return { content: msg };
+        }
+
         for (let i in msg) {
             if (i === "embeds" || i === "components" || i === "attachments") {
                 data[i] = [];

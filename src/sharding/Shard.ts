@@ -8,6 +8,8 @@ import { PresenceState } from "./classes/PresenceState";
 import { IMember, OP_GUILD_MEMBER_CHUNK } from "./events/GUILD_MEMBER_CHUNK";
 import { OP_PRESENCE_UPDATE } from "./events/PRESENCE_UPDATE";
 import { EventEmitter } from "events";
+import { Client } from "..";
+import { OP_INTERACTION_CREATE } from "./events/INTERACTION_CREATE";
 
 export class Shard extends EventEmitter {
     private wss: WebSocket;
@@ -25,14 +27,19 @@ export class Shard extends EventEmitter {
     public token: string;
     public intents: number;
 
-    constructor() {
+    public client: Client;
+    public user: { id: string, username: string } //TODO real type
+
+    constructor(publicKey?: string) {
         super();
+        this.client = new Client(this.token, publicKey);
     }
 
     private message(data: RawData) {
         let o = this.parseOp(this.parse(data));
 
-        if (o instanceof OP_GUILD_CREATE) {
+        if (o instanceof OP_INTERACTION_CREATE) {
+            this.emit("interactionCreate", o.interaction);
         } else if (o instanceof OP_HELLO) {
             this.heartbeatInterval = o.heartbeatInterval();
             this.startHeartbeat();
@@ -61,6 +68,7 @@ export class Shard extends EventEmitter {
                         return new OP_GUILD_CREATE(data, this.guilds, this.presences);
                     case "READY":
                         new OP_READY(data, this.guilds);
+                        this.user = data.d.user;
                         this.emit("shardReady", this.shard);
                         if ((this.intents & 1 << 1) == 1 << 1) { // check for GUILD_MEMBERS intent
                             setTimeout(
@@ -91,6 +99,8 @@ export class Shard extends EventEmitter {
                         );
                     case "PRESENCE_UPDATE":
                         return new OP_PRESENCE_UPDATE(data, this.presences);
+                    case "INTERACTION_CREATE":
+                        return new OP_INTERACTION_CREATE(data, this);
                     default:
                         break;
                 }
