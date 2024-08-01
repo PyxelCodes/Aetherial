@@ -12,7 +12,7 @@ import { Client } from "..";
 import { OP_INTERACTION_CREATE } from "./events/INTERACTION_CREATE";
 
 export class Shard extends EventEmitter {
-    private wss: WebSocket;
+    public wss: WebSocket;
     private wssUrl = `wss://gateway.discord.gg/?v=10&encoding=json`;
 
     // connective stuff
