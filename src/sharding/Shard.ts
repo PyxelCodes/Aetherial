@@ -37,12 +37,6 @@ export class Shard extends EventEmitter {
     constructor(publicKey?: string) {
         super();
         this.client = new Client(this.token, publicKey);
-
-        this.wss.on("close", (code, reason) => {
-            console.log(`Shard ${this.shardId} closed with`);
-            console.log(code);
-            console.log(reason);
-        })
     }
 
     private message(data: RawData) {
@@ -218,6 +212,12 @@ export class Shard extends EventEmitter {
         this.intents = intents;
 
         this.wss.on("message", this.message.bind(this));
+
+        this.wss.on("close", (code, reason) => {
+            console.log(`Shard ${this.shardId} closed with`);
+            console.log(code);
+            console.log(reason);
+        })
     }
 }
 
