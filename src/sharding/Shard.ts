@@ -28,11 +28,21 @@ export class Shard extends EventEmitter {
     public intents: number;
 
     public client: Client;
-    public user: { id: string, username: string } //TODO real type
+    public user: { id: string; username: string }; //TODO real type
+
+    // session
+    private sessionURL: string = null;
+    private sessionID: string = null;
 
     constructor(publicKey?: string) {
         super();
         this.client = new Client(this.token, publicKey);
+
+        this.wss.on("close", (code, reason) => {
+            console.log(`Shard ${this.shardId} closed with`);
+            console.log(code);
+            console.log(reason);
+        })
     }
 
     private message(data: RawData) {
@@ -57,20 +67,61 @@ export class Shard extends EventEmitter {
         return JSON.parse(data.toString()); // maybe ETF or zlib-stream later
     }
 
+    private resume() {
+        this.wss.close();
+        this.wss = new WebSocket(this.sessionURL);
+
+        console.log(`Resuming shard ${this.shardId} on ${this.sessionURL}`);
+
+        this.wss.on("open", () => {
+            this.emit("websocketResume", void 0);
+
+            this.sendMessage({
+                op: 6,
+                d: {
+                    token: this.token,
+                    session_id: this.sessionID,
+                    seq: this.lastACK,
+                }
+            });
+        });
+        this.wss.on("message", this.message.bind(this));
+        this.wss.on("close", (code, reason) => {
+            console.log(`Shard ${this.shardId} closed with`);
+            console.log(code);
+            console.log(reason);
+        })
+    }
+
     private parseOp(data: IDiscordGatewayOp) {
         if (data.s) this.lastACK = data.s;
         switch (data.op) {
             case 10: // HELLO
                 return new OP_HELLO(data);
+
+            case 7:
+                // Reconnect Event
+                this.resume();
+
+                break;
+
             case 0: {
                 switch (data.t) {
                     case "GUILD_CREATE":
-                        return new OP_GUILD_CREATE(data, this.guilds, this.presences);
+                        return new OP_GUILD_CREATE(
+                            data,
+                            this.guilds,
+                            this.presences
+                        );
+
                     case "READY":
                         new OP_READY(data, this.guilds);
+                        this.sessionURL = data.d.resume_gateway_url;
+                        this.sessionID = data.d.session_id;
                         this.user = data.d.user;
                         this.emit("shardReady", this.shard);
-                        if ((this.intents & 1 << 1) == 1 << 1) { // check for GUILD_MEMBERS intent
+                        if ((this.intents & (1 << 1)) == 1 << 1) {
+                            // check for GUILD_MEMBERS intent
                             setTimeout(
                                 (() => {
                                     // TODO this is horrible
