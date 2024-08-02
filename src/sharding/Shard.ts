@@ -10,10 +10,12 @@ import { OP_PRESENCE_UPDATE } from "./events/PRESENCE_UPDATE";
 import { EventEmitter } from "events";
 import { Client } from "..";
 import { OP_INTERACTION_CREATE } from "./events/INTERACTION_CREATE";
+import { log } from "../debug/logger";
 
 export class Shard extends EventEmitter {
     public wss: WebSocket;
-    private wssUrl = `wss://gateway.discord.gg/?v=10&encoding=json`;
+    private wssUrl = `wss://gateway.discord.gg`;
+    private wssUrlOpt = '/?v=10&encoding=json';
 
     // connective stuff
     private heartbeatInterval: number = 40_000; // default 40s
@@ -33,6 +35,7 @@ export class Shard extends EventEmitter {
     // session
     private sessionURL: string = null;
     private sessionID: string = null;
+    private shouldAuthenticate: boolean = true;
 
     constructor(publicKey?: string) {
         super();
@@ -40,11 +43,13 @@ export class Shard extends EventEmitter {
     }
 
     private message(data: RawData) {
+        log("Shard::message => ", JSON.stringify(JSON.parse(data.toString()), null, 2));
         let o = this.parseOp(this.parse(data));
 
         if (o instanceof OP_INTERACTION_CREATE) {
             this.emit("interactionCreate", o.interaction);
         } else if (o instanceof OP_HELLO) {
+            if(!this.shouldAuthenticate) return;
             this.heartbeatInterval = o.heartbeatInterval();
             this.startHeartbeat();
             this.sendMessage(
@@ -57,12 +62,22 @@ export class Shard extends EventEmitter {
         }
     }
 
+    private applyListeners() {
+        // run on every websocket reconnection
+        this.wss.on("message", this.message.bind(this));
+        this.wss.on("close", (code, reason) => {
+            console.log(`Shard ${this.shardId} closed with code ${code ?? null}`);
+            console.log(reason, "\n", "Buffer::resolve => ", reason.toString());
+        })
+    }
+
     private parse(data: RawData): IDiscordGatewayOp {
         return JSON.parse(data.toString()); // maybe ETF or zlib-stream later
     }
 
     private resume() {
-        this.wss.close();
+        this.shouldAuthenticate = false; // don't send another OP_IDENTIFY on OP_READY from remote
+        this.wss.close(1001, Buffer.from("Shard.resume() called"));
         this.wss = new WebSocket(this.sessionURL);
 
         console.log(`Resuming shard ${this.shardId} on ${this.sessionURL}`);
@@ -79,12 +94,8 @@ export class Shard extends EventEmitter {
                 }
             });
         });
-        this.wss.on("message", this.message.bind(this));
-        this.wss.on("close", (code, reason) => {
-            console.log(`Shard ${this.shardId} closed with`);
-            console.log(code);
-            console.log(reason);
-        })
+
+        this.applyListeners();
     }
 
     private parseOp(data: IDiscordGatewayOp) {
@@ -110,7 +121,7 @@ export class Shard extends EventEmitter {
 
                     case "READY":
                         new OP_READY(data, this.guilds);
-                        this.sessionURL = data.d.resume_gateway_url;
+                        this.sessionURL = data.d.resume_gateway_url + this.wssUrlOpt;
                         this.sessionID = data.d.session_id;
                         this.user = data.d.user;
                         this.emit("shardReady", this.shard);
@@ -126,7 +137,6 @@ export class Shard extends EventEmitter {
                                         let next = guild_ids.shift();
                                         if (!next)
                                             return clearInterval(interval);
-                                        //console.log(`Requesting guild members for ${next}`);
                                         this.requestGuildMembers(next);
                                     }, 250);
                                 }).bind(this),
@@ -176,6 +186,7 @@ export class Shard extends EventEmitter {
     }
 
     private sendMessage(data: IDiscordGatewayOp) {
+        log("Shard::sendMessage => ", JSON.stringify(data, null, 2));
         this.wss.send(JSON.stringify(data));
     }
 
@@ -197,7 +208,7 @@ export class Shard extends EventEmitter {
 
     public login(token: string) {
         this.token = token;
-        this.wss = new WebSocket(this.wssUrl);
+        this.wss = new WebSocket(this.wssUrl + this.wssUrlOpt);
 
         this.wss.on("open", () => {
             this.emit("wssReady", null);
@@ -211,13 +222,7 @@ export class Shard extends EventEmitter {
         this.shardId = shardId;
         this.intents = intents;
 
-        this.wss.on("message", this.message.bind(this));
-
-        this.wss.on("close", (code, reason) => {
-            console.log(`Shard ${this.shardId} closed with`);
-            console.log(code);
-            console.log(reason);
-        })
+        this.applyListeners();
     }
 }
 
