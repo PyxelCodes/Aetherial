@@ -15,7 +15,7 @@ import { log } from "../debug/logger";
 export class Shard extends EventEmitter {
     public wss: WebSocket;
     private wssUrl = `wss://gateway.discord.gg`;
-    private wssUrlOpt = '/?v=10&encoding=json';
+    private wssUrlOpt = "/?v=10&encoding=json";
 
     // connective stuff
     private heartbeatInterval: number = 40_000; // default 40s
@@ -37,21 +37,26 @@ export class Shard extends EventEmitter {
     private sessionID: string = null;
     private shouldAuthenticate: boolean = true;
 
+    private heartBeatTimer: ReturnType<typeof setInterval>;
+
     constructor(publicKey?: string) {
         super();
         this.client = new Client(this.token, publicKey);
     }
 
-    private message(data: RawData) {
-        log("Shard::message => ", JSON.stringify(JSON.parse(data.toString()), null, 2));
+    private async message(data: RawData) {
+        log(
+            "Shard::message => ",
+            JSON.stringify(JSON.parse(data.toString()), null, 2)
+        );
         let o = this.parseOp(this.parse(data));
 
         if (o instanceof OP_INTERACTION_CREATE) {
             this.emit("interactionCreate", o.interaction);
         } else if (o instanceof OP_HELLO) {
-            if(!this.shouldAuthenticate) return;
+            if (!this.shouldAuthenticate) return;
             this.heartbeatInterval = o.heartbeatInterval();
-            this.startHeartbeat();
+            this.heartBeatTimer = await this.startHeartbeat();
             this.sendMessage(
                 new OP_IDENTIFY()
                     .setToken(this.token)
@@ -59,6 +64,7 @@ export class Shard extends EventEmitter {
                     .setShard(this.shard)
                     .op()
             );
+            this.shouldAuthenticate = false;
         }
     }
 
@@ -66,9 +72,27 @@ export class Shard extends EventEmitter {
         // run on every websocket reconnection
         this.wss.on("message", this.message.bind(this));
         this.wss.on("close", (code, reason) => {
-            console.log(`Shard ${this.shardId} closed with code ${code ?? null}`);
+            console.log(
+                `Shard ${this.shardId} closed with code ${code ?? null}`
+            );
             console.log(reason, "\n", "Buffer::resolve => ", reason.toString());
-        })
+
+            if (code !== 1001) {
+                // reconnect entirely
+                this.fullReconnect();
+            }
+        });
+    }
+
+    private fullReconnect() {
+        this.shouldAuthenticate = true;
+        clearInterval(this.heartBeatTimer);
+        this.wss.close(1001, Buffer.from("Shard.fullReconnect() called"));
+        this.wss = new WebSocket(this.wssUrl + this.wssUrlOpt);
+
+        console.log(`Reconnecting shard ${this.shardId} on ${this.wssUrl}`);
+
+        this.applyListeners();
     }
 
     private parse(data: RawData): IDiscordGatewayOp {
@@ -91,7 +115,7 @@ export class Shard extends EventEmitter {
                     token: this.token,
                     session_id: this.sessionID,
                     seq: this.lastACK,
-                }
+                },
             });
         });
 
@@ -121,7 +145,8 @@ export class Shard extends EventEmitter {
 
                     case "READY":
                         new OP_READY(data, this.guilds);
-                        this.sessionURL = data.d.resume_gateway_url + this.wssUrlOpt;
+                        this.sessionURL =
+                            data.d.resume_gateway_url + this.wssUrlOpt;
                         this.sessionID = data.d.session_id;
                         this.user = data.d.user;
                         this.emit("shardReady", this.shard);
@@ -197,13 +222,17 @@ export class Shard extends EventEmitter {
         });
     }
 
-    private startHeartbeat() {
-        setTimeout(() => {
-            this.sendHeartbeat();
-            setInterval(() => {
+    private async startHeartbeat(): Promise<ReturnType<typeof setInterval>> {
+        return new Promise((resolve) => {
+            setTimeout(() => {
                 this.sendHeartbeat();
-            }, this.heartbeatInterval);
-        }, Math.random() * this.heartbeatInterval);
+                resolve(
+                    setInterval(() => {
+                        this.sendHeartbeat();
+                    }, this.heartbeatInterval)
+                );
+            }, Math.random() * this.heartbeatInterval);
+        });
     }
 
     public login(token: string) {
