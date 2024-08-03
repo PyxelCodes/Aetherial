@@ -54,9 +54,10 @@ export class Shard extends EventEmitter {
         if (o instanceof OP_INTERACTION_CREATE) {
             this.emit("interactionCreate", o.interaction);
         } else if (o instanceof OP_HELLO) {
-            if (!this.shouldAuthenticate) return;
+            if(this.heartBeatTimer) clearInterval(this.heartBeatTimer);
             this.heartbeatInterval = o.heartbeatInterval();
             this.heartBeatTimer = await this.startHeartbeat();
+            if (!this.shouldAuthenticate) return;
             this.sendMessage(
                 new OP_IDENTIFY()
                     .setToken(this.token)
@@ -109,14 +110,16 @@ export class Shard extends EventEmitter {
         this.wss.on("open", () => {
             this.emit("websocketResume", void 0);
 
-            this.sendMessage({
-                op: 6,
-                d: {
-                    token: this.token,
-                    session_id: this.sessionID,
-                    seq: this.lastACK,
-                },
-            });
+            setTimeout(() => {
+                this.sendMessage({
+                    op: 6,
+                    d: {
+                        token: this.token,
+                        session_id: this.sessionID,
+                        seq: this.lastACK,
+                    },
+                });
+            }, 800);
         });
 
         this.applyListeners();
@@ -127,6 +130,10 @@ export class Shard extends EventEmitter {
         switch (data.op) {
             case 10: // HELLO
                 return new OP_HELLO(data);
+
+            case 9: // Invalid Session
+                this.fullReconnect();
+                break;
 
             case 7:
                 // Reconnect Event
