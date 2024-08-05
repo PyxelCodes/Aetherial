@@ -48,7 +48,7 @@ export class Shard extends EventEmitter {
     }
 
     get ping() {
-        return this.ping_state_srv - this.ping_state_ACK;
+        return this.ping_state_ACK - this.ping_state_srv;
     }
 
     private async message(data: RawData) {
