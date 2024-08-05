@@ -12,7 +12,7 @@ export class ShardInteraction {
 
     message?: Message;
 
-    url = `https://discord.com/api/v10`
+    url = `https://discord.com/api/v10`;
 
     constructor(data: InteractionCreateData, shard: Shard) {
         this.data = data;
@@ -47,13 +47,17 @@ export class ShardInteraction {
                 { type: 0x4, data: Interaction.parseMessage(data) },
                 { headers: { Authorization: `Bot ${this.client.token}` } }
             )
-            .catch((x) => console.log(JSON.stringify(x.response.data, null, 4)));
+            .catch((x) =>
+                console.log(JSON.stringify(x.response.data, null, 4))
+            );
 
-        // TODO: fetchreply
+        if (data.fetchReply) {
+            return await this.fetchReply();
+        }
     }
 
     async editReply(data: InteractionReplyData) {
-        if(data.ephemeral) data.flags = 1 << 6;
+        if (data.ephemeral) data.flags = 1 << 6;
         try {
             await axios.patch(
                 `${this.url}/webhooks/${this.client.user.id}/${this.data.token}/messages/@original`,
@@ -76,7 +80,9 @@ export class ShardInteraction {
     async RESTfetchReply() {
         let req;
         try {
-            req = await axios.get(`${this.url}/webhooks/${this.client.user.id}/${this.data.token}/messages/@original`);
+            req = await axios.get(
+                `${this.url}/webhooks/${this.client.user.id}/${this.data.token}/messages/@original`
+            );
         } catch (error) {
             console.error(error);
             return null;
@@ -84,8 +90,8 @@ export class ShardInteraction {
         return req.data;
     }
 
-    async iwr(url: string, type: string = 'get', body?: any) {
-        if(!body) return Interaction.iwr(url, this.client, type);
+    async iwr(url: string, type: string = "get", body?: any) {
+        if (!body) return Interaction.iwr(url, this.client, type);
         return Interaction.iwr(url, this.client, type, body);
     }
 }
