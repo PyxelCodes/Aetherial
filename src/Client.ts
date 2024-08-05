@@ -120,12 +120,12 @@ interface Bot extends Client {
     buttons: Cache<Button>;
 }
 
-export interface Command {
+export interface Command<T = Interaction> {
     name: string;
     description: string;
     data?: SlashCommandBuilder;
     dev?: boolean;
-    run(ICommandProps: ICommandArgument): unknown;
+    run(ICommandProps: ICommandArgument<T>): unknown;
 }
 
 interface Button {
@@ -139,8 +139,8 @@ interface ButtonInteraction {
     data: string[];
 }
 
-export interface ICommandArgument {
-    interaction: Interaction;
+export interface ICommandArgument<T = Interaction> {
+    interaction: T | Interaction;
     client?: Bot;
     locale?: string;
     edit?: boolean;

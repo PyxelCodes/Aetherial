@@ -14,6 +14,7 @@ import { MessageAttachment } from "./classes/MessageAttachment";
 import { MessageEmbed, MessageEmbedData } from "./classes/MessageEmbed";
 import { TextInput } from "./classes/Modal";
 import fastify, { FastifyReply } from "fastify";
+import { Shard } from "./sharding/Shard";
 
 declare global {
     namespace NodeJS {
@@ -129,7 +130,7 @@ export class Interaction {
         else return Interaction.iwr(url, this.client, type, body);
     }
 
-    static async iwr(url: string, client: Client, type?: string, body?: any) {
+    static async iwr(url: string, client: Client | Shard, type?: string, body?: any) {
         let req: AxiosResponse<any>;
         let tokenRegex = /\/webhooks\/\d+\/[a-zA-Z0-9_-]+/;
 
