@@ -39,9 +39,16 @@ export class Shard extends EventEmitter {
 
     private heartBeatTimer: ReturnType<typeof setInterval>;
 
+    private ping_state_srv: number = 0;
+    private ping_state_ACK: number = 0;
+
     constructor(publicKey?: string) {
         super();
         this.client = new Client(this.token, publicKey);
+    }
+
+    get ping() {
+        return this.ping_state_srv - this.ping_state_ACK;
     }
 
     private async message(data: RawData) {
@@ -128,6 +135,10 @@ export class Shard extends EventEmitter {
     private parseOp(data: IDiscordGatewayOp) {
         if (data.s) this.lastACK = data.s;
         switch (data.op) {
+            case 11: // HEARTBEAT ACK
+                this.ping_state_ACK = Date.now();
+                log(`Shard::parseOp => HEARTBEAT ACK ping acknowledged ${this.ping}ms`);
+                break;
             case 10: // HELLO
                 return new OP_HELLO(data);
 
@@ -223,6 +234,7 @@ export class Shard extends EventEmitter {
     }
 
     private sendHeartbeat() {
+        this.ping_state_srv = Date.now();
         this.sendMessage({
             op: 1,
             d: this.lastACK, // [s] field
