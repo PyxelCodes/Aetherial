@@ -9,6 +9,7 @@ export class ShardInteraction {
     client: Shard;
     data: InteractionCreateData;
     replied = false;
+    createdTimestamp: number = Date.now();
 
     message?: Message;
 
