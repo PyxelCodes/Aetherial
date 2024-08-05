@@ -19,7 +19,7 @@
     "@types/fastify-cors": "^2.1.0",
     "@types/node": "^20.14.9",
     "@types/signale": "^1.4.7",
-    "@types/ws": "^8.5.10",
+    "@types/ws": "^8.5.12",
     "ts-node": "^10.9.2",
     "tsup": "^8.1.0",
     "typescript": "^5.5.2"
@@ -34,6 +34,6 @@
     "fastify": "^4.28.1",
     "fastify-raw-body": "^4.3.0",
     "signale": "^1.4.0",
-    "ws": "^8.17.1"
+    "ws": "^8.18.0"
   }
 }
