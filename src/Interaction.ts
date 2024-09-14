@@ -31,16 +31,19 @@ export class Interaction {
     client: Client;
     user: User;
     channel: TextChannel;
-
     deffered: boolean = false;
-
     createdTimestamp: number;
     replied: boolean = false;
-
     values?: string[];
-
     url = `https://discord.com/api/v9`;
 
+    /**
+     * Constructs a new instance of the Interaction class.
+     * @constructor
+     * @param interactionData - The interaction data.
+     * @param res - The Fastify reply object.
+     * @param client - The client object.
+     */
     constructor(
         interactionData: InteractionData,
         res: FastifyReply,
@@ -55,8 +58,7 @@ export class Interaction {
         this.channel = new TextChannel(this);
         if (!this.data.member) {
             console.warn(
-                `[Interaction] member is null -> ${this.data.id} -> command: ${
-                    this.data?.data?.name || this.data?.data?.custom_id
+                `[Interaction] member is null -> ${this.data.id} -> command: ${this.data?.data?.name || this.data?.data?.custom_id
                 }`
             );
             // @ts-expect-error
@@ -75,44 +77,91 @@ export class Interaction {
         }
     }
 
+    /**
+     * Gets the guild ID associated with this interaction.
+     * 
+     * @returns {string} The guild ID.
+     */
     get guild() {
         // @ts-ignore
         //if (process.flags.state('debug')) return this.data.guildId;
         return this.data.guild_id;
     }
+
+
+    /**
+     * Gets the name of the command.
+     * @returns {string} The name of the command.
+     */
     get commandName() {
         // @ts-ignore
         //if (process.flags.state('debug')) return this.data.commandName;
         return this.data?.data?.name;
     }
+
+    /**
+     * Gets the custom ID of the interaction.
+     *
+     * @return {string} The custom ID of the interaction, or undefined if it is not available.
+     */
     get customId() {
         return this.data?.data?.custom_id;
     }
 
     // This is used for backend tampering to allow redirection of button commands to the command handler
+    /**
+     * Sets the name of the command.
+     * 
+     * @param name - The name of the command.
+     */
     set commandName(name: string) {
         this.data.data.name = name;
     }
+
+    /**
+     * Sets the custom ID for the interaction.
+     * 
+     * @param id - The custom ID to set.
+     */
     set customId(id: string) {
         this.data.data.custom_id = id;
     }
 
-    public isCommand() {
+    /**
+     * Checks if the interaction is a command.
+     * @returns {boolean} Returns true if the interaction is a command, otherwise false.
+     */
+    public isCommand(): boolean {
         // @ts-ignore
         //if (process.flags.state('debug')) return this.data.isCommand();
         return this.data.type == 2;
     }
-    public isButton() {
+
+    /**
+     * Checks if the interaction is a button.
+     * @returns {boolean} Returns true if the interaction is a button, otherwise false.
+     */
+    public isButton(): boolean {
         // @ts-ignore
         //if (process.flags.state('debug')) return this.data.isButton();
         return this.data.type == 3 && this.data.data.component_type == 2;
     }
-    public isModalSubmit() {
+
+    /**
+     * Checks if the interaction is a modal submit.
+     * @returns {boolean} Returns true if the interaction is a modal submit, otherwise false.
+     */
+    public isModalSubmit(): boolean {
         // @ts-ignore
         //if (process.flags.state('debug')) return this.data.isModalSubmit();
         return this.data.type == 5;
     }
-    public isSelectMenu() {
+
+    /**
+     * Checks if the interaction is a select menu.
+     * @returns {boolean} True if the interaction is a select menu, false otherwise.
+     */
+    public isSelectMenu(): boolean {
         // @ts-ignore
         //if (process.flags.state('debug')) return this.data.isSelectMenu();
         return (
@@ -124,22 +173,39 @@ export class Interaction {
         );
     }
 
+    /**
+     * Sends an HTTP request to the specified URL.
+     * 
+     * @param url - The URL to send the request to.
+     * @param type - The type of the request (default: "get").
+     * @param body - The body of the request (optional).
+     * @returns A promise that resolves with the response from the server.
+     */
     async iwr(url: string, type: string = "get", body?: any) {
         if (!body) return Interaction.iwr(url, this.client, type);
         else return Interaction.iwr(url, this.client, type, body);
     }
 
+    /**
+     * Sends an HTTP request to the specified URL using Axios.
+     * 
+     * @param {string} url - The URL to send the request to.
+     * @param {Client} client - The client object used for authorization.
+     * @param {string} type - The type of HTTP request (e.g., "get", "post").
+     * @param body - The request body (optional).
+     * @returns {Promise<AxiosResponse<any, any>>} A Promise that resolves to the AxiosResponse object.
+     */
     static async iwr(url: string, client: Client, type?: string, body?: any) {
         let req: AxiosResponse<any>;
         let tokenRegex = /\/webhooks\/\d+\/[a-zA-Z0-9_-]+/;
 
         // Measure API Latency
         let instance = axios.create();
-        instance.interceptors.request.use((config) => {
+        instance.interceptors.request.use((config: { headers: { [x: string]: any; }; }) => {
             config.headers["request-startTime"] = process.hrtime();
             return config;
         });
-        instance.interceptors.response.use((response) => {
+        instance.interceptors.response.use((response: { config: { headers: { [x: string]: any; }; }; headers: { [x: string]: number; }; }) => {
             const start = response.config.headers["request-startTime"];
             const end = process.hrtime(start);
             const milliseconds = Math.round(end[0] * 1000 + end[1] / 1e6);
@@ -170,9 +236,8 @@ export class Interaction {
                     // Log Error
                     console.error(
                         `[IWR ERROR]`.red +
-                            `${error.response?.data?.message} -> ERRNO ${
-                                error.response?.status
-                            }/${error.response?.data?.code ?? 0}`
+                        `${error.response?.data?.message} -> ERRNO ${error.response?.status
+                        }/${error.response?.data?.code ?? 0}`
                     );
                     if (error.response?.data)
                         console.log(
@@ -180,8 +245,7 @@ export class Interaction {
                         );
                     if (!error.response?.data?.message) console.error(error);
                     console.info(
-                        `Request URL: ${
-                            url.replace(tokenRegex, "/webhooks/<token>").magenta
+                        `Request URL: ${url.replace(tokenRegex, "/webhooks/<token>").magenta
                         }`
                     );
                     break;
@@ -195,6 +259,12 @@ export class Interaction {
         return req;
     }
 
+    /**
+     * Displays a modal dialog for interaction.
+     * 
+     * @param {TextInput} data - The text input data for the modal dialog.
+     * @returns A promise that resolves when the modal dialog is closed.
+     */
     async showModal(data: TextInput) {
         await this.iwr(
             `${this.url}/interactions/${this.data.id}/${this.data.token}/callback`,
@@ -206,6 +276,11 @@ export class Interaction {
         );
     }
 
+    /**
+     * Fetches the reply message for the interaction.
+     * 
+     * @returns The data of the fetched reply message, or null if there was an error.
+     */
     async fetchReply() {
         try {
             let req = await this.iwr(
@@ -225,8 +300,7 @@ export class Interaction {
                 return req.data;
             } catch (error) {
                 console.error(
-                    `Error in Interaction.fetchReply [PARSER] -> ${
-                        (error as AxiosError).message
+                    `Error in Interaction.fetchReply [PARSER] -> ${(error as AxiosError).message
                     }\n ${error}`
                 );
                 console.warn(`HTTP ${req?.status} -> ${req?.data}`);
@@ -234,23 +308,27 @@ export class Interaction {
             }
         } catch (error) {
             console.error(
-                `Error in Interaction.fetchReply: ${
-                    (error as AxiosError)?.code
+                `Error in Interaction.fetchReply: ${(error as AxiosError)?.code
                 }\n ${error}`
             );
             return null;
         }
     }
 
+    /**
+     * Sends a reply to the interaction.
+     * 
+     * @param {InteractionReplyData} data - The data for the reply.
+     * @param {boolean} replied - Optional flag indicating if the interaction has already been replied to.
+     * @returns {Promise<Message>} A Promise that resolves to the sent message.
+     */
     async reply(data: InteractionReplyData, replied = false): Promise<Message> {
         if (data.ephemeral) data.flags = 64;
 
         if (this.replied) {
             console.warn(
-                `${"[REGRESSION]".red} ${
-                    "[WARN]".yellow
-                } Interaction already replied. Falling back to editReply() -> ${
-                    this.commandName?.magenta
+                `${"[REGRESSION]".red} ${"[WARN]".yellow
+                } Interaction already replied. Falling back to editReply() -> ${this.commandName?.magenta
                 }`
             );
             await this.editReply(data);
@@ -280,6 +358,11 @@ export class Interaction {
         if (data.fetchReply) return await this.fetchReply();
     }
 
+    /**
+     * Edits the reply of the interaction.
+     * @param {InteractionReplyData} data - The data to be edited.
+     * @returns  A Promise that resolves when the reply is edited.
+     */
     async editReply(data: InteractionReplyData) {
         if (data.ephemeral) data.flags = 64;
 
@@ -301,6 +384,11 @@ export class Interaction {
         if (data.fetchReply) return await this.fetchReply();
     }
 
+    /**
+     * Deletes the reply message.
+     * 
+     * @returns A promise that resolves when the reply message is successfully deleted.
+     */
     async deleteReply() {
         await this.iwr(
             `${this.url}/webhooks/${this.client.user.id}/${this.data.token}/messages/@original`,
@@ -308,6 +396,12 @@ export class Interaction {
         );
     }
 
+    /**
+     * Updates the interaction with the provided data.
+     * 
+     * @param {InteractionReplyData} data - The data to update the interaction with.
+     * @returns void
+     */
     async update(data: InteractionReplyData) {
         this.res.send({
             type: 0x7, // 0x7 type -> UPDATE_MESSAGE
@@ -315,6 +409,11 @@ export class Interaction {
         });
     }
 
+    /**
+     * Sends a follow-up message in response to an interaction.
+     * @param {InteractionReplyData} data - The data for the follow-up message.
+     * @returns A Promise that resolves to the fetched reply, or null if `fetchReply` is false.
+     */
     async followUp(data: InteractionReplyData) {
         if (data.ephemeral) data.flags = 64;
         await this.iwr(
@@ -326,6 +425,15 @@ export class Interaction {
         else return null;
     }
 
+    /**
+     * Defers the interaction response.
+     * 
+     * This method sends a deferred response to the interaction, indicating that the bot is still processing the request.
+     * 
+     * It sets the `type` property of the response to `0x5` (DEFERRED_CHANNEL_MESSAGE_WITH_SOURCE).
+     * 
+     * It also sets the `deffered` property of the class instance to `true`.
+     */
     async defer() {
         this.res.send({
             type: 0x5, // 0x5 type -> DEFERRED_CHANNEL_MESSAGE_WITH_SOURCE
@@ -333,6 +441,15 @@ export class Interaction {
         this.deffered = true;
     }
 
+    /**
+     * Defers the update message.
+     * 
+     * Sends a deferred update message to the client.
+     * 
+     * It sets the `type` property of the response to `0x6` (DEFERRED_UPDATE_MESSAGE).
+     * 
+     * Sets the `deffered` flag to true.
+     */
     async deferUpdate() {
         this.res.send({
             type: 0x6, // 0x6 type -> DEFERRED_UPDATE_MESSAGE
@@ -340,10 +457,22 @@ export class Interaction {
         this.deffered = true;
     }
 
+    /**
+     * Suspends the execution of the current function for the specified number of milliseconds.
+     * @param {number} ms - The number of milliseconds to sleep.
+     * @returns A promise that resolves after the specified number of milliseconds.
+     */
     sleep(ms: number) {
         return new Promise((resolve) => setTimeout(resolve, ms));
     }
 
+    /**
+     * Parses the given `msg` object and returns a formatted `InteractionReplyFormatted` object.
+     * This function extracts embeds, components, and attachments from the `msg` object and formats them accordingly.
+     * 
+     * @param {InteractionReplyData} msg - The `InteractionReplyData` object to be parsed.
+     * @returns {InteractionReplyFormatted} The formatted `InteractionReplyFormatted` object.
+     */
     static parseMessage(msg: InteractionReplyData): InteractionReplyFormatted {
         let data: InteractionReplyFormatted = {} as InteractionReplyFormatted;
         // Parse embeds, components and attachments
@@ -366,6 +495,14 @@ export class Interaction {
         return data;
     }
 
+    /**
+     * Sends a form data request with interaction reply data to the specified URL.
+     * 
+     * @param {InteractionReplyData} body - The interaction reply data.
+     * @param {string} url - The URL to send the request to.
+     * @param {boolean} alreadyReplied - Optional parameter indicating if the reply has already been sent. Default is false.
+     * @returns A promise that resolves to the response from the server.
+     */
     public async iwrFormData(
         body: InteractionReplyData,
         url: string,
@@ -422,7 +559,7 @@ export class Interaction {
         if (!alreadyReplied) await this.deferUpdate();
 
         let startedTimestamp = Date.now();
-        let req;
+        let req: any;
         try {
             req = await axios({
                 method: "patch",
@@ -459,12 +596,21 @@ export class Interaction {
         return `https://cdn.discordapp.com/avatars/${this.user.id}/${this.user.avatar}.png`;
     }
 
-    static parseEmbed(embed: MessageEmbed) {
+    /**
+     * Parses a MessageEmbed object and returns its JSON representation.
+     * 
+     * @param {MessageEmbed} embed - The MessageEmbed object to parse.
+     * @returns {MessageEmbedData} The JSON representation of the embed.
+     */
+    static parseEmbed(embed: MessageEmbed): MessageEmbedData {
         let data = embed.toJSON();
         return data;
     }
 }
 
+/**
+ * Represents a text channel in a Discord interaction.
+ */
 export class TextChannel {
     interaction: Interaction;
     id: string;
@@ -474,10 +620,21 @@ export class TextChannel {
         this.id = parent.data.channel_id;
     }
 
+    /**
+     * Sets the channel ID.
+     * 
+     * @param {string} id - The ID of the channel.
+     */
     set channel_id(id: string) {
         this.id = id;
     }
 
+    /**
+     * Sends a message to the specified channel.
+     * 
+     * @param {InteractionReplyData} data - The data for the message to be sent.
+     * @returns {Promise<Message>} A Promise that resolves to the sent message.
+     */
     async send(data: InteractionReplyData) {
         let res = await this.interaction.iwr(
             `https://discord.com/api/v9/channels/${this.id}/messages`,
@@ -499,6 +656,9 @@ export class TextChannel {
     }
 }
 
+/**
+ * Represents the data structure for an interaction.
+ */
 export interface InteractionData {
     id: string; // Unique ID of command
     type?: number;
@@ -570,6 +730,10 @@ export interface InteractionData {
     }[];
 }
 
+/**
+ * Represents an interaction option.
+ * @interface
+ */
 declare interface InteractionOption {
     type: number;
     name: string;
@@ -587,6 +751,9 @@ declare interface InteractionOption {
     value?: string;
 }
 
+/**
+ * Represents an autocomplete option for an interaction.
+ */
 declare interface InteractionAutocompleteOption {
     focused: boolean;
     name: string;
@@ -594,11 +761,17 @@ declare interface InteractionAutocompleteOption {
     value: string;
 }
 
+/**
+ * Represents an option choice for an interaction.
+ */
 declare interface InteractionOptionChoice {
     name: string;
     value: string | number;
 }
 
+/**
+ * Represents the data for an interaction reply.
+ */
 export interface InteractionReplyData {
     ephemeral?: boolean;
     flags?: number;
@@ -609,6 +782,9 @@ export interface InteractionReplyData {
     files?: MessageAttachment[];
 }
 
+/**
+ * Represents the formatted reply for an interaction.
+ */
 declare interface InteractionReplyFormatted {
     ephemeral?: boolean;
     flags?: number;
