@@ -1,5 +1,6 @@
-import { Client } from './Client';
-import { Interaction, InteractionReplyData } from './Interaction';
+import { Client } from "./Client";
+import { Interaction, InteractionReplyData } from "./Interaction";
+import { ShardInteraction } from "./sharding/ShardInteraction";
 
 /**
  * Represents a message in a Discord
@@ -7,7 +8,7 @@ import { Interaction, InteractionReplyData } from './Interaction';
 export class Message {
 
     data: MessageData;
-    interaction: Interaction;
+    interaction: Interaction | ShardInteraction;
     components: { type: number; components: MessageComponent }[];
     client: Client;
     createdTimestamp: number;
@@ -16,15 +17,18 @@ export class Message {
      * Constructs a new Message object.
      * 
      * @constructor
-     * @param data - The data for the message.
-     * @param client - The interaction client.
+     * @param {MessageData} data - The data for the message.
+     * @param {Interaction | ShardInteraction} client - The interaction client.
      */
-    constructor(data: MessageData, client: Interaction) {
+    constructor(data: MessageData, client: Interaction | ShardInteraction) {
         this.data = data;
         this.interaction = client;
         if (client) {
-            if (Object.prototype.hasOwnProperty.call(client, 'client')) {
-                this.client = client.client;
+            if (Object.prototype.hasOwnProperty.call(client, "client")) {
+                this.client =
+                    client instanceof ShardInteraction
+                        ? client.client.client
+                        : client.client; // what is this
             } else {
                 this.client = client as unknown as Client;
             }
@@ -69,7 +73,7 @@ export class Message {
             await Interaction.iwr(
                 `https://discord.com/api/v9/channels/${IMessage.channel}/messages/${IMessage.id}`,
                 client,
-                'patch',
+                "patch",
                 data
             );
         }
@@ -102,7 +106,7 @@ export class Message {
         await Interaction.iwr(
             `https://discord.com/api/v10/channels/${channel_id}/messages/${message_id}`,
             this.client,
-            'patch',
+            "patch",
             data
         );
     }
@@ -116,7 +120,7 @@ export class Message {
      * @returns A Promise that resolves when the message is successfully edited.
      */
     public async edit(data: InteractionReplyData) {
-        if (data?.files?.length) {
+        if (data?.files?.length && this.interaction instanceof Interaction) {
             await this.interaction.iwrFormData(
                 data,
                 `${this.interaction.url}/webhooks/${this.client.user.id}/${this.interaction.data.token}/messages/@original`,
@@ -126,7 +130,7 @@ export class Message {
             await Interaction.iwr(
                 `${this.interaction.url}/webhooks/${this.client.user.id}/${this.interaction.data.token}/messages/@original`,
                 this.client,
-                'patch',
+                "patch",
                 data
             );
         }
@@ -143,13 +147,13 @@ export class Message {
      */
     public async reply(text: string) {
         let data = {
-            content: text
+            content: text,
         };
 
         await Interaction.iwr(
             `https://discord.com/api/v9/channels/${this.channel}/messages`,
             this.client,
-            'post',
+            "post",
             data
         );
     }
@@ -257,7 +261,7 @@ declare interface MessageAttachment { }
  * Represents a message embed.
  */
 declare interface MessageEmbed {
-    type: 'rich';
+    type: "rich";
     description: string;
     author: MessageAuthor;
     color: number;

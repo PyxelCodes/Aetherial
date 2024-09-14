@@ -14,6 +14,7 @@ import { MessageAttachment } from "./classes/MessageAttachment";
 import { MessageEmbed, MessageEmbedData } from "./classes/MessageEmbed";
 import { TextInput } from "./classes/Modal";
 import fastify, { FastifyReply } from "fastify";
+import { Shard } from "./sharding/Shard";
 
 declare global {
     namespace NodeJS {
@@ -190,12 +191,12 @@ export class Interaction {
      * Sends an HTTP request to the specified URL using Axios.
      * 
      * @param {string} url - The URL to send the request to.
-     * @param {Client} client - The client object used for authorization.
+     * @param {Client | Shard} client - The client object used for authorization.
      * @param {string} type - The type of HTTP request (e.g., "get", "post").
      * @param body - The request body (optional).
      * @returns {Promise<AxiosResponse<any, any>>} A Promise that resolves to the AxiosResponse object.
      */
-    static async iwr(url: string, client: Client, type?: string, body?: any) {
+    static async iwr(url: string, client: Client | Shard, type?: string, body?: any) {
         let req: AxiosResponse<any>;
         let tokenRegex = /\/webhooks\/\d+\/[a-zA-Z0-9_-]+/;
 
@@ -476,6 +477,11 @@ export class Interaction {
     static parseMessage(msg: InteractionReplyData): InteractionReplyFormatted {
         let data: InteractionReplyFormatted = {} as InteractionReplyFormatted;
         // Parse embeds, components and attachments
+
+        //fallback
+        if(typeof msg === 'string') {
+            return { content: msg };
+        }
 
         for (let i in msg) {
             if (i === "embeds" || i === "components" || i === "attachments") {

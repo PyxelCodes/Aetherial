@@ -14,6 +14,7 @@ export { Cache } from "./core/Cache";
 
 export { Shard } from "./sharding/Shard";
 export { ShardingManager } from "./sharding/ShardingManager";
+export { ShardInteraction } from "./sharding/ShardInteraction";
 
 export { Client, Command } from "./Client";
 export { IWRError } from "./Errors";

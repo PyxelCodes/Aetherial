@@ -9,8 +9,11 @@ import { Interaction, InteractionData } from "./Interaction";
 import { REST } from "./rest/rest";
 
 export declare interface Client {
-    on(event: 'ready', listener: () => void): this;
-    on(event: 'interactionCreate', listener: (interaction: Interaction) => void): this;
+    on(event: "ready", listener: () => void): this;
+    on(
+        event: "interactionCreate",
+        listener: (interaction: Interaction) => void
+    ): this;
 }
 export class Client extends EventEmitter {
     commands: Cache<Command>;
@@ -28,7 +31,7 @@ export class Client extends EventEmitter {
         displayAvatarURL(): string;
     };
 
-    constructor(token: string, publicKey: string) {
+    constructor(token: string, publicKey?: string) {
         super();
 
         this.token = token;
@@ -37,26 +40,28 @@ export class Client extends EventEmitter {
         this.setMaxListeners(150);
         this.ready = true; // No EventEmitter is being used
 
-        this.rest = new REST(this);
+        if (publicKey) {
+            this.rest = new REST(this);
 
-        // make neccessary calls
-        axios
-            .get(`https://discord.com/api/v9/users/@me`, {
-                headers: { Authorization: `Bot ${this.token}` },
-            })
-            .then((res) => {
-                this.user = res.data;
-                this.user.displayAvatarURL = () =>
-                    `https://cdn.discordapp.com/avatars/${this.user.id}/${this.user.avatar}.png?size=1024`;
+            // make neccessary calls
+            axios
+                .get(`https://discord.com/api/v9/users/@me`, {
+                    headers: { Authorization: `Bot ${this.token}` },
+                })
+                .then((res) => {
+                    this.user = res.data;
+                    this.user.displayAvatarURL = () =>
+                        `https://cdn.discordapp.com/avatars/${this.user.id}/${this.user.avatar}.png?size=1024`;
 
-                this.rest.createServer().then(() => {
-                    this.emit("ready");
+                    this.rest.createServer().then(() => {
+                        this.emit("ready");
+                    });
+                })
+                .catch((err) => {
+                    console.error(err);
+                    console.log(err?.response?.data);
                 });
-            })
-            .catch((err) => {
-                console.error(err);
-                console.log(err?.response?.data);
-            });
+        }
 
         this.commands = new Cache();
         this.buttons = new Cache();
@@ -115,12 +120,12 @@ interface Bot extends Client {
     buttons: Cache<Button>;
 }
 
-export interface Command {
+export interface Command<T = Interaction> {
     name: string;
     description: string;
     data?: SlashCommandBuilder;
     dev?: boolean;
-    run(ICommandProps: ICommandArgument): unknown;
+    run(ICommandProps: ICommandArgument<T>): unknown;
 }
 
 interface Button {
@@ -134,8 +139,8 @@ interface ButtonInteraction {
     data: string[];
 }
 
-export interface ICommandArgument {
-    interaction: Interaction;
+export interface ICommandArgument<T = Interaction> {
+    interaction: T | Interaction;
     client?: Bot;
     locale?: string;
     edit?: boolean;

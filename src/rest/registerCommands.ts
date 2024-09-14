@@ -3,7 +3,8 @@ import { SlashCommandBuilder, Cache, Command } from "..";
 
 export async function registerCommands(
     commands: Cache<Command>,
-    token: string
+    token: string,
+    guildId?: string
 ) {
     let cmds = Array.from(commands, ([n, v]) => v).map((cmd) => {
         let builder: SlashCommandBuilder = cmd.data;
@@ -30,8 +31,9 @@ export async function registerCommands(
     }
 
     try {
+        let uri = guildId ? `guilds/${guildId}/commands` : `commands`;
         await axios.put(
-            `https://discord.com/api/v10/applications/${client.id}/guilds/1256598531662151680/commands`,
+            `https://discord.com/api/v10/applications/${client.id}/${uri}`,
             cmds,
             { headers: { Authorization: `Bot ${token}` } }
         );

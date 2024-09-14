@@ -105,7 +105,6 @@ export class InteractionOptions {
      * @returns The ID of the channel, or null if not found.
      */
     getChannel(name: string) {
-        console.log(this.data.options[0].options);
         // supplies resolved channel!
         let id =
             this.data.options?.find((x: { name: string; }) => x.name === name)?.value ??
