@@ -1,14 +1,24 @@
 import { Client } from './Client';
 import { Interaction, InteractionReplyData } from './Interaction';
 
+/**
+ * Represents a message in a Discord
+ */
 export class Message {
+
     data: MessageData;
     interaction: Interaction;
     components: { type: number; components: MessageComponent }[];
     client: Client;
-
     createdTimestamp: number;
 
+    /**
+     * Constructs a new Message object.
+     * 
+     * @constructor
+     * @param data - The data for the message.
+     * @param client - The interaction client.
+     */
     constructor(data: MessageData, client: Interaction) {
         this.data = data;
         this.interaction = client;
@@ -22,13 +32,32 @@ export class Message {
         this.createdTimestamp = new Date(this.data?.timestamp).getTime();
     }
 
+    /**
+     * Gets the embeds of the message.
+     * @returns {MessageEmbed[]} An array of MessageEmbed objects representing the embeds of the message.
+     */
     get embeds(): MessageEmbed[] {
         return this.data.embeds;
     }
+
+    /**
+     * Gets the attachments of the message.
+     * @returns An array of MessageAttachment objects representing the attachments.
+     */
     get attachments(): MessageAttachment[] {
         return this.data.attachments;
     }
 
+    /**
+     * Edits a message.
+     * @async
+     * @public
+     * @static
+     * @param IMessage - The message to edit.
+     * @param client - The client object.
+     * @param data - The data to update the message with.
+     * @returns A promise that resolves when the message is edited.
+     */
     public static async edit(IMessage: Message, client: Client, data) {
         if (data?.attachments?.length) {
             await data.interaction.iwrFormData(
@@ -46,8 +75,25 @@ export class Message {
         }
     }
 
-    public async removeAttachments() {}
+    /**
+     * Removes attachments from the message.
+     * 
+     * @async
+     * @public
+     * @returns {Promise<void>} A promise that resolves when the attachments are removed.
+     */
+    public async removeAttachments() { }
 
+    /**
+     * Edits a message in a channel.
+     * 
+     * @async
+     * @public
+     * @param channel_id - The ID of the channel where the message is located.
+     * @param message_id - The ID of the message to be edited.
+     * @param data - The updated data for the message.
+     * @returns {Promise<void>} A promise that resolves when the message is successfully edited.
+     */
     public async staticEdit(
         channel_id: string,
         message_id: string,
@@ -61,6 +107,14 @@ export class Message {
         );
     }
 
+    /**
+     * Edits the message with the provided data.
+     * 
+     * @async
+     * @public
+     * @param data - The data to update the message with.
+     * @returns A Promise that resolves when the message is successfully edited.
+     */
     public async edit(data: InteractionReplyData) {
         if (data?.files?.length) {
             await this.interaction.iwrFormData(
@@ -79,6 +133,14 @@ export class Message {
         return void 0;
     }
 
+    /**
+     * Sends a reply message to the channel.
+     * 
+     * @async
+     * @public
+     * @param text The text content of the reply message.
+     * @returns {Promise<void>} A promise that resolves when the reply message is sent.
+     */
     public async reply(text: string) {
         let data = {
             content: text
@@ -92,23 +154,65 @@ export class Message {
         );
     }
 
+    /**
+     * Gets the ID of the message.
+     *
+     * @public
+     * @readonly
+     * @returns {string} The ID of the message.
+     */
     get id(): string {
         return this.data.id;
     }
+
+    /**
+     * Gets the author of the message.
+     *
+     * @public
+     * @readonly
+     * @returns {MessageAuthor} The author of the message.
+     */
     get author(): MessageAuthor {
         return this.data.author;
     }
+
+    /**
+     * Gets the content of the message.
+     *
+     * @public
+     * @readonly
+     * @returns {string} The content of the message as a string.
+     */
     get content(): string {
         return this.data.content;
     }
+
+    /**
+     * Gets the channel ID.
+     *
+     * @public
+     * @readonly
+     * @returns {string} The channel ID.
+     */
     get channel(): string {
         return this.data.channel_id;
     }
+
+    /**
+     * Retrieves the guild ID associated with this message.
+     * 
+     * @public
+     * @readonly
+     * @returns {string} The guild ID as a string.
+     */
     get guild(): string {
         return this.data.guild_id;
     }
 }
 
+/**
+ * Represents the data structure of a message.
+ */
 export interface MessageData {
     id: string;
     type: number;
@@ -132,6 +236,9 @@ export interface MessageData {
     guild_id?: string;
 }
 
+/**
+ * Represents the author of a message.
+ */
 declare interface MessageAuthor {
     id: string;
     name: string;
@@ -140,7 +247,15 @@ declare interface MessageAuthor {
     bot: boolean;
     public_flags: number;
 }
-declare interface MessageAttachment {}
+
+/**
+ * Represents a message attachment.
+ */
+declare interface MessageAttachment { }
+
+/**
+ * Represents a message embed.
+ */
 declare interface MessageEmbed {
     type: 'rich';
     description: string;
@@ -148,13 +263,26 @@ declare interface MessageEmbed {
     color: number;
     fields: MessageEmbedField[];
 }
-declare interface MessageComponent {}
+
+/**
+ * Represents a message component.
+ */
+declare interface MessageComponent { }
+
+/**
+ * Represents an interaction within a message.
+ * id {string}
+ */
 declare interface MessageInteraction {
     id: string;
     type: number;
     name: string;
     user: MessageAuthor;
 }
+
+/**
+ * Represents a field in a message embed.
+ */
 declare interface MessageEmbedField {
     name: string;
     value: string;
