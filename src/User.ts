@@ -1,6 +1,7 @@
-import { Client } from './Client';
-import { Interaction, InteractionReplyData } from './Interaction';
-import { User as CacheUser } from './core/CacheManager';
+import { Client } from "./Client";
+import { Http } from "./Http";
+import { Interaction, InteractionReplyData } from "./Interaction";
+import { User as CacheUser } from "./core/CacheManager";
 
 /**
  * Represents a User.
@@ -28,7 +29,6 @@ export class User {
         return this.data.id;
     }
 
-
     /**
      * Gets the username of the user.
      *
@@ -37,7 +37,6 @@ export class User {
     public get username() {
         return this.data.username;
     }
-
 
     /**
      * Gets the discriminator of the user.
@@ -48,7 +47,6 @@ export class User {
         return this.data.discriminator;
     }
 
-
     /**
      * Gets the avatar of the user.
      *
@@ -57,7 +55,6 @@ export class User {
     public get avatar() {
         return this.data.avatar;
     }
-
 
     /**
      * Gets the tag of the user.
@@ -68,7 +65,6 @@ export class User {
         return `${this.username}`;
     }
 
-
     /**
      * Gets the public flags of the user.
      *
@@ -78,7 +74,6 @@ export class User {
         return this.data.public_flags;
     }
 
-
     /**
      * Gets the display name of the user.
      *
@@ -87,7 +82,6 @@ export class User {
     public get display_name() {
         return this.data.display_name;
     }
-
 
     /**
      * Gets the avatar decoration of the user.
@@ -99,7 +93,7 @@ export class User {
 
     /**
      * Returns the URL of the user's avatar image.
-     * 
+     *
      * @returns The URL of the user's avatar image.
      */
     public displayAvatarURL() {
@@ -108,28 +102,29 @@ export class User {
 
     /**
      * Sends a message to a user.
-     * 
+     *
      * @async
      * @param userId - The ID of the user to send the message to.
      * @param message - The message to send.
      * @param client - The Discord client instance.
      * @returns {Promise<void>} A Promise that resolves to the sent message.
      */
-    public static async send(userId: string, message: InteractionReplyData, client: Client) {
-        await Interaction.iwr(
-            `https://discord.com/api/v9/users/@me/channels`,
-            client,
-            `post`,
-            { recipient_id: userId }
-        ).then(async (res) => {
-            return await Interaction.iwr(
-                `https://discord.com/api/v9/channels/${res.data.id}/messages`,
-                client,
-                'post',
-                message
-            );
-        });
+    public static async send(
+        userId: string,
+        message: InteractionReplyData,
+        client: Client
+    ) {
+        let http = new Http(client.token);
+        await http
+            .iwr(`https://discord.com/api/v9/users/@me/channels`, `post`, {
+                recipient_id: userId,
+            })
+            .then(async (res) => {
+                return await http.iwr(
+                    `https://discord.com/api/v9/channels/${res.data.id}/messages`,
+                    "post",
+                    message
+                );
+            });
     }
-
-
 }

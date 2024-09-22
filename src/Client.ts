@@ -7,6 +7,7 @@ import { Cache } from "./core/Cache";
 import { SlashCommandBuilder } from "./classes/SlashBuilder/SlashCommandBuilder";
 import { Interaction, InteractionData } from "./Interaction";
 import { REST } from "./rest/rest";
+import nacl from "tweetnacl";
 
 export declare interface Client {
     on(event: "ready", listener: () => void): this;
@@ -23,6 +24,7 @@ export class Client extends EventEmitter {
     token: string;
     publicKey: string;
     rest: REST;
+    httpLatency: number = 0;
 
     user: {
         id: string;
@@ -31,7 +33,7 @@ export class Client extends EventEmitter {
         displayAvatarURL(): string;
     };
 
-    constructor(token: string, publicKey?: string) {
+    constructor(token: string, publicKey?: string, port?: number) {
         super();
 
         this.token = token;
@@ -41,11 +43,11 @@ export class Client extends EventEmitter {
         this.ready = true; // No EventEmitter is being used
 
         if (publicKey) {
-            this.rest = new REST(this);
+            this.rest = new REST(this, port ?? 3087);
 
             // make neccessary calls
             axios
-                .get(`https://discord.com/api/v9/users/@me`, {
+                .get(`https://discord.com/api/v10/users/@me`, {
                     headers: { Authorization: `Bot ${this.token}` },
                 })
                 .then((res) => {
@@ -70,6 +72,24 @@ export class Client extends EventEmitter {
 
     public interactionHandler() {
         this.rest._app.post("/interactions", async (req, res) => {
+            // Setup handling
+
+            const sig = req.headers["x-signature-ed25519"] as string;
+            const timestamp = req.headers["x-signature-timestamp"] as string;
+            const body = req.rawBody;
+            const isVerified = nacl.sign.detached.verify(
+                Buffer.from(timestamp + body),
+                Buffer.from(sig, "hex"),
+                Buffer.from(this.publicKey, "hex")
+            );
+
+            if (!isVerified)
+                return res.status(401).send("Invalid request signature");
+
+            if ((req.body as any)?.type === 1) {
+                return res.send({ type: 1 });
+            }
+
             this.emit(
                 "interactionCreate",
                 new Interaction(req.body as InteractionData, res, this)

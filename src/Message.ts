@@ -64,15 +64,14 @@ export class Message {
      */
     public static async edit(IMessage: Message, client: Client, data) {
         if (data?.attachments?.length) {
-            await data.interaction.iwrFormData(
+            await IMessage.interaction.iwrFiles(
                 data,
                 `https://discord.com/api/v9/channels/${IMessage.channel}/messages/${IMessage.id}`,
                 true
             );
         } else {
-            await Interaction.iwr(
+            await IMessage.interaction.iwr(
                 `https://discord.com/api/v9/channels/${IMessage.channel}/messages/${IMessage.id}`,
-                client,
                 "patch",
                 data
             );
@@ -103,9 +102,8 @@ export class Message {
         message_id: string,
         data: InteractionReplyData
     ) {
-        await Interaction.iwr(
+        await this.interaction.iwr(
             `https://discord.com/api/v10/channels/${channel_id}/messages/${message_id}`,
-            this.client,
             "patch",
             data
         );
@@ -121,15 +119,14 @@ export class Message {
      */
     public async edit(data: InteractionReplyData) {
         if (data?.files?.length && this.interaction instanceof Interaction) {
-            await this.interaction.iwrFormData(
+            await this.interaction.iwrFiles(
                 data,
                 `${this.interaction.url}/webhooks/${this.client.user.id}/${this.interaction.data.token}/messages/@original`,
                 true
             );
         } else {
-            await Interaction.iwr(
+            await this.interaction.iwr(
                 `${this.interaction.url}/webhooks/${this.client.user.id}/${this.interaction.data.token}/messages/@original`,
-                this.client,
                 "patch",
                 data
             );
@@ -150,9 +147,8 @@ export class Message {
             content: text,
         };
 
-        await Interaction.iwr(
+        await this.interaction.iwr(
             `https://discord.com/api/v9/channels/${this.channel}/messages`,
-            this.client,
             "post",
             data
         );

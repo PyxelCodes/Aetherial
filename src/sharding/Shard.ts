@@ -20,6 +20,7 @@ export class Shard extends EventEmitter {
     // connective stuff
     private heartbeatInterval: number = 40_000; // default 40s
     private lastACK: number = null;
+    public httpLatency: number = 0;
 
     public guilds = new Map<string, Guild>();
     public presences = new Map<string, PresenceState>();

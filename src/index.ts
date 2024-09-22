@@ -22,7 +22,6 @@ export {
     Interaction,
     InteractionData,
     InteractionReplyData,
-    TextChannel,
 } from "./Interaction";
 export { InteractionOptions } from "./InteractionOptions";
 export { Message } from "./Message";
@@ -31,3 +30,4 @@ export { WebhookClient } from "./WebhookClient";
 export { loadCommands } from "./loader/loadCommands";
 export { registerCommands } from "./rest/registerCommands";
 export { IntentBuilder } from "./classes/IntentBuilder";
+export { TextChannel } from "./TextChannel";

@@ -8,6 +8,7 @@ export async function registerCommands(
 ) {
     let cmds = Array.from(commands, ([n, v]) => v).map((cmd) => {
         let builder: SlashCommandBuilder = cmd.data;
+        if (!builder) builder = new SlashCommandBuilder();
         builder.setName(cmd.name);
         if (!cmd.description)
             throw new Error(
@@ -38,7 +39,8 @@ export async function registerCommands(
             { headers: { Authorization: `Bot ${token}` } }
         );
     } catch (error: any) {
-        console.error(error);
+        console.error(`Failed to send commands to Discord API`.red);
+        console.log({ url: error.config.url, response: error.response.data });
         console.error(
             `HTTP ${error.response?.status} ${error.response?.statusText}`.red
         );

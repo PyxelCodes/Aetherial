@@ -3,8 +3,9 @@ import { Interaction, InteractionReplyData } from "../Interaction";
 import { Shard } from "./Shard";
 import { InteractionCreateData } from "./events/INTERACTION_CREATE";
 import { Message } from "../Message";
+import { Http } from "../Http";
 
-export class ShardInteraction {
+export class ShardInteraction extends Http {
     created_at: number;
     client: Shard;
     data: InteractionCreateData;
@@ -16,6 +17,7 @@ export class ShardInteraction {
     url = `https://discord.com/api/v10`;
 
     constructor(data: InteractionCreateData, shard: Shard) {
+        super(shard.client.token);
         this.data = data;
         this.created_at = Date.now();
         this.client = shard;
@@ -42,18 +44,14 @@ export class ShardInteraction {
 
         // TODO; data.files
 
-        axios
-            .post(
-                `https://discord.com/api/v9/interactions/${this.data.id}/${this.data.token}/callback`,
-                { type: 0x4, data: Interaction.parseMessage(data) },
-                { headers: { Authorization: `Bot ${this.client.token}` } }
-            )
-            .catch((x) =>
-                console.log(JSON.stringify(x.response.data, null, 4))
-            );
+        let callback = await axios.post(
+            `https://discord.com/api/v9/interactions/${this.data.id}/${this.data.token}/callback`,
+            { type: 0x4, data: Interaction.parseMessage(data) },
+            { headers: { Authorization: `Bot ${this.client.token}` } }
+        );
 
-        if (data.fetchReply) {
-            return await this.fetchReply();
+        if (callback?.data?.resource?.message) {
+            return new Message(callback.data.resource.message, this);
         }
     }
 
@@ -89,10 +87,5 @@ export class ShardInteraction {
             return null;
         }
         return req.data;
-    }
-
-    async iwr(url: string, type: string = "get", body?: any) {
-        if (!body) return Interaction.iwr(url, this.client, type);
-        return Interaction.iwr(url, this.client, type, body);
     }
 }

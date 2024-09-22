@@ -1,10 +1,8 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import sizeOf from "buffer-image-size";
-import axios, { AxiosError, AxiosResponse } from "axios";
-import FormData from "form-data";
+import { AxiosError } from "axios";
 import { Client } from "./Client";
 import { InteractionOptions } from "./InteractionOptions";
-import { Message } from "./Message";
+import { Message, MessageData } from "./Message";
 import { User } from "./User";
 import {
     MessageActionRow,
@@ -13,18 +11,11 @@ import {
 import { MessageAttachment } from "./classes/MessageAttachment";
 import { MessageEmbed, MessageEmbedData } from "./classes/MessageEmbed";
 import { TextInput } from "./classes/Modal";
-import fastify, { FastifyReply } from "fastify";
-import { Shard } from "./sharding/Shard";
+import { FastifyReply } from "fastify";
+import { TextChannel } from "./TextChannel";
+import { Http } from "./Http";
 
-declare global {
-    namespace NodeJS {
-        interface Process {
-            lastApiLatency: number;
-        }
-    }
-}
-
-export class Interaction {
+export class Interaction extends Http {
     data: InteractionData;
     res: FastifyReply;
     message: Message;
@@ -50,6 +41,7 @@ export class Interaction {
         res: FastifyReply,
         client: Client
     ) {
+        super(client.token);
         this.data = interactionData; // @ts-ignore
         //if (process.flags.state('debug')) this.data.data = {};
         this.res = res;
@@ -59,7 +51,8 @@ export class Interaction {
         this.channel = new TextChannel(this);
         if (!this.data.member) {
             console.warn(
-                `[Interaction] member is null -> ${this.data.id} -> command: ${this.data?.data?.name || this.data?.data?.custom_id
+                `[Interaction] member is null -> ${this.data.id} -> command: ${
+                    this.data?.data?.name || this.data?.data?.custom_id
                 }`
             );
             // @ts-expect-error
@@ -80,7 +73,7 @@ export class Interaction {
 
     /**
      * Gets the guild ID associated with this interaction.
-     * 
+     *
      * @returns {string} The guild ID.
      */
     get guild() {
@@ -88,7 +81,6 @@ export class Interaction {
         //if (process.flags.state('debug')) return this.data.guildId;
         return this.data.guild_id;
     }
-
 
     /**
      * Gets the name of the command.
@@ -112,7 +104,7 @@ export class Interaction {
     // This is used for backend tampering to allow redirection of button commands to the command handler
     /**
      * Sets the name of the command.
-     * 
+     *
      * @param name - The name of the command.
      */
     set commandName(name: string) {
@@ -121,7 +113,7 @@ export class Interaction {
 
     /**
      * Sets the custom ID for the interaction.
-     * 
+     *
      * @param id - The custom ID to set.
      */
     set customId(id: string) {
@@ -132,7 +124,7 @@ export class Interaction {
      * Checks if the interaction is a command.
      * @returns {boolean} Returns true if the interaction is a command, otherwise false.
      */
-    public isCommand(): boolean {
+    public isCommand(): this is Interaction {
         // @ts-ignore
         //if (process.flags.state('debug')) return this.data.isCommand();
         return this.data.type == 2;
@@ -175,94 +167,8 @@ export class Interaction {
     }
 
     /**
-     * Sends an HTTP request to the specified URL.
-     * 
-     * @param url - The URL to send the request to.
-     * @param type - The type of the request (default: "get").
-     * @param body - The body of the request (optional).
-     * @returns A promise that resolves with the response from the server.
-     */
-    async iwr(url: string, type: string = "get", body?: any) {
-        if (!body) return Interaction.iwr(url, this.client, type);
-        else return Interaction.iwr(url, this.client, type, body);
-    }
-
-    /**
-     * Sends an HTTP request to the specified URL using Axios.
-     * 
-     * @param {string} url - The URL to send the request to.
-     * @param {Client | Shard} client - The client object used for authorization.
-     * @param {string} type - The type of HTTP request (e.g., "get", "post").
-     * @param body - The request body (optional).
-     * @returns {Promise<AxiosResponse<any, any>>} A Promise that resolves to the AxiosResponse object.
-     */
-    static async iwr(url: string, client: Client | Shard, type?: string, body?: any) {
-        let req: AxiosResponse<any>;
-        let tokenRegex = /\/webhooks\/\d+\/[a-zA-Z0-9_-]+/;
-
-        // Measure API Latency
-        let instance = axios.create();
-        instance.interceptors.request.use((config: { headers: { [x: string]: any; }; }) => {
-            config.headers["request-startTime"] = process.hrtime();
-            return config;
-        });
-        instance.interceptors.response.use((response: { config: { headers: { [x: string]: any; }; }; headers: { [x: string]: number; }; }) => {
-            const start = response.config.headers["request-startTime"];
-            const end = process.hrtime(start);
-            const milliseconds = Math.round(end[0] * 1000 + end[1] / 1e6);
-            response.headers["X-Response-Time"] = milliseconds;
-            return response;
-        });
-
-        try {
-            // IWebRequest to Discord API (Axios)
-            if (type == "get") {
-                req = await instance.get(url, {
-                    headers: { Authorization: `Bot ${client.token}` },
-                });
-            } else {
-                req = await instance[type || "get"](url, body ?? null, {
-                    headers: { Authorization: `Bot ${client.token}` },
-                });
-            }
-        } catch (error: any) {
-            // Handle Specific Errors
-
-            switch (error.response?.status) {
-                case 403:
-                    // Forbidden (99.9% DMs disabled)
-                    break;
-
-                default:
-                    // Log Error
-                    console.error(
-                        `[IWR ERROR]`.red +
-                        `${error.response?.data?.message} -> ERRNO ${error.response?.status
-                        }/${error.response?.data?.code ?? 0}`
-                    );
-                    if (error.response?.data)
-                        console.log(
-                            JSON.stringify(error.response.data, null, 2)
-                        );
-                    if (!error.response?.data?.message) console.error(error);
-                    console.info(
-                        `Request URL: ${url.replace(tokenRegex, "/webhooks/<token>").magenta
-                        }`
-                    );
-                    break;
-            }
-        }
-        process.lastApiLatency = req.headers["X-Response-Time"];
-        if (req?.headers?.["X-RateLimit-Remaining"])
-            console.log(
-                `[IWR] ${req.headers["X-RateLimit-Remaining"]}/${req.headers["X-RateLimit-Limit"]} requests remaining`
-            );
-        return req;
-    }
-
-    /**
      * Displays a modal dialog for interaction.
-     * 
+     *
      * @param {TextInput} data - The text input data for the modal dialog.
      * @returns A promise that resolves when the modal dialog is closed.
      */
@@ -278,85 +184,48 @@ export class Interaction {
     }
 
     /**
-     * Fetches the reply message for the interaction.
-     * 
-     * @returns The data of the fetched reply message, or null if there was an error.
-     */
-    async fetchReply() {
-        try {
-            let req = await this.iwr(
-                `${this.url}/webhooks/${this.client.user.id}/${this.data.token}/messages/@original`,
-                "get"
-            );
-
-            try {
-                if (!req?.data) {
-                    console.warn(
-                        `fetchReply response is empty -> ${this.commandName.magenta} | [/webhooks/] -> nullPtr`
-                    );
-                    return null;
-                }
-                this.message = new Message(req.data, this);
-                req.data.client = this.client;
-                return req.data;
-            } catch (error) {
-                console.error(
-                    `Error in Interaction.fetchReply [PARSER] -> ${(error as AxiosError).message
-                    }\n ${error}`
-                );
-                console.warn(`HTTP ${req?.status} -> ${req?.data}`);
-                return null;
-            }
-        } catch (error) {
-            console.error(
-                `Error in Interaction.fetchReply: ${(error as AxiosError)?.code
-                }\n ${error}`
-            );
-            return null;
-        }
-    }
-
-    /**
      * Sends a reply to the interaction.
-     * 
+     *
      * @param {InteractionReplyData} data - The data for the reply.
      * @param {boolean} replied - Optional flag indicating if the interaction has already been replied to.
      * @returns {Promise<Message>} A Promise that resolves to the sent message.
      */
-    async reply(data: InteractionReplyData, replied = false): Promise<Message> {
-        if (data.ephemeral) data.flags = 64;
+    async reply(data: InteractionReplyData): Promise<Message> {
+        if (data.ephemeral) data.flags = 1 << 6;
 
-        if (this.replied) {
-            console.warn(
-                `${"[REGRESSION]".red} ${"[WARN]".yellow
-                } Interaction already replied. Falling back to editReply() -> ${this.commandName?.magenta
-                }`
-            );
-            await this.editReply(data);
-            if (data.fetchReply) return await this.fetchReply();
-            return;
+        if (this.replied || this.deffered) {
+            return await this.editReply(data);
         }
+
         this.replied = true;
+        this.res.status(202).send();
 
         if (data.files) {
-            // Send Images using multipart/form-data
-            await Promise.resolve(
-                await this.iwrFormData(
-                    data,
-                    `${this.url}/webhooks/${this.client.user.id}/${this.data.token}/messages/@original`,
-                    replied
-                )
+            let callback = await this.iwrFiles(
+                data,
+                `${this.url}/interactions/${this.data.id}/${this.data.token}/callback`
             );
+            let msg = new Message(callback.data.ressource.message, this);
+            msg.client = this.client;
+            return msg;
         } else {
-            await Promise.resolve(
-                this.res.send({
-                    type: 0x4, // 0x4 type -> CHANNEL_MESSAGE_WITH_SOURCE
-                    data: Interaction.parseMessage(data),
-                })
-            );
-        }
+            try {
+                let callback = await this.iwr(
+                    `${this.url}/interactions/${this.data.id}/${this.data.token}/callback`,
+                    "post",
+                    {
+                        type: 4, // 0x4 type -> CHANNEL_MESSAGE_WITH_SOURCE
+                        // @ts-ignore
+                        data: Interaction.parseMessage(data),
+                    },
+                    { with_response: true }
+                );
 
-        if (data.fetchReply) return await this.fetchReply();
+                return new Message(callback.data.resource.message, this);
+
+                // console.log(callback.data)
+            } catch (error) {}
+        }
     }
 
     /**
@@ -364,33 +233,37 @@ export class Interaction {
      * @param {InteractionReplyData} data - The data to be edited.
      * @returns  A Promise that resolves when the reply is edited.
      */
-    async editReply(data: InteractionReplyData) {
+    async editReply(data: InteractionReplyData): Promise<Message> {
         if (data.ephemeral) data.flags = 64;
 
         try {
-            if (data.files)
-                return this.iwrFormData(
+            let callback: { data: MessageData };
+            if (data.files) {
+                callback = await this.iwrFiles(
                     data,
                     `${this.url}/webhooks/${this.client.user.id}/${this.data.token}/messages/@original`,
                     true
                 );
-            await this.iwr(
-                `${this.url}/webhooks/${this.client.user.id}/${this.data.token}/messages/@original`,
-                "patch",
-                data
-            );
+            } else {
+                callback = await this.iwr(
+                    `${this.url}/webhooks/${this.client.user.id}/${this.data.token}/messages/@original`,
+                    "patch",
+                    data
+                );
+            }
+
+            return new Message(callback.data, this);
         } catch (error) {
             console.log((error as AxiosError).response.data);
         }
-        if (data.fetchReply) return await this.fetchReply();
     }
 
     /**
      * Deletes the reply message.
-     * 
+     *
      * @returns A promise that resolves when the reply message is successfully deleted.
      */
-    async deleteReply() {
+    async deleteReply(): Promise<void> {
         await this.iwr(
             `${this.url}/webhooks/${this.client.user.id}/${this.data.token}/messages/@original`,
             "delete"
@@ -399,11 +272,11 @@ export class Interaction {
 
     /**
      * Updates the interaction with the provided data.
-     * 
+     *
      * @param {InteractionReplyData} data - The data to update the interaction with.
      * @returns void
      */
-    async update(data: InteractionReplyData) {
+    async update(data: InteractionReplyData): Promise<void> {
         this.res.send({
             type: 0x7, // 0x7 type -> UPDATE_MESSAGE
             data: Interaction.parseMessage(data),
@@ -413,26 +286,26 @@ export class Interaction {
     /**
      * Sends a follow-up message in response to an interaction.
      * @param {InteractionReplyData} data - The data for the follow-up message.
-     * @returns A Promise that resolves to the fetched reply, or null if `fetchReply` is false.
+     * @returns A Promise that resolves to the fetched reply
      */
-    async followUp(data: InteractionReplyData) {
+    async followUp(data: InteractionReplyData): Promise<Message> {
         if (data.ephemeral) data.flags = 64;
-        await this.iwr(
+        let callback = await this.iwr(
             `${this.url}/webhooks/${this.client.user.id}/${this.data.token}`,
             "post",
             Interaction.parseMessage(data)
         );
-        if (data.fetchReply) return await this.fetchReply();
-        else return null;
+        let msg = new Message(callback.data, this);
+        return msg;
     }
 
     /**
      * Defers the interaction response.
-     * 
+     *
      * This method sends a deferred response to the interaction, indicating that the bot is still processing the request.
-     * 
+     *
      * It sets the `type` property of the response to `0x5` (DEFERRED_CHANNEL_MESSAGE_WITH_SOURCE).
-     * 
+     *
      * It also sets the `deffered` property of the class instance to `true`.
      */
     async defer() {
@@ -444,14 +317,14 @@ export class Interaction {
 
     /**
      * Defers the update message.
-     * 
+     *
      * Sends a deferred update message to the client.
-     * 
+     *
      * It sets the `type` property of the response to `0x6` (DEFERRED_UPDATE_MESSAGE).
-     * 
+     *
      * Sets the `deffered` flag to true.
      */
-    async deferUpdate() {
+    async deferUpdate(): Promise<void> {
         this.res.send({
             type: 0x6, // 0x6 type -> DEFERRED_UPDATE_MESSAGE
         });
@@ -470,7 +343,7 @@ export class Interaction {
     /**
      * Parses the given `msg` object and returns a formatted `InteractionReplyFormatted` object.
      * This function extracts embeds, components, and attachments from the `msg` object and formats them accordingly.
-     * 
+     *
      * @param {InteractionReplyData} msg - The `InteractionReplyData` object to be parsed.
      * @returns {InteractionReplyFormatted} The formatted `InteractionReplyFormatted` object.
      */
@@ -479,7 +352,7 @@ export class Interaction {
         // Parse embeds, components and attachments
 
         //fallback
-        if(typeof msg === 'string') {
+        if (typeof msg === "string") {
             return { content: msg };
         }
 
@@ -491,8 +364,13 @@ export class Interaction {
 
                 for (let e of msg[i]) {
                     if (i === "embeds")
-                        data.embeds.push(Interaction.parseEmbed(e));
-                    if (i === "components") data.components.push(e.toJSON());
+                        data.embeds.push(
+                            Interaction.parseEmbed(e as MessageEmbed)
+                        );
+                    if (i === "components")
+                        data.components.push(
+                            e.toJSON() as MessageComponentData
+                        );
                     //if(i === 'attachments') data.attachments.push(e.toJSON());
                 }
             } else data[i] = msg[i];
@@ -501,164 +379,19 @@ export class Interaction {
         return data;
     }
 
-    /**
-     * Sends a form data request with interaction reply data to the specified URL.
-     * 
-     * @param {InteractionReplyData} body - The interaction reply data.
-     * @param {string} url - The URL to send the request to.
-     * @param {boolean} alreadyReplied - Optional parameter indicating if the reply has already been sent. Default is false.
-     * @returns A promise that resolves to the response from the server.
-     */
-    public async iwrFormData(
-        body: InteractionReplyData,
-        url: string,
-        alreadyReplied = false
-    ) {
-        let form = new FormData();
-
-        let j = 0;
-
-        // @ts-ignore
-        body.attachments = [];
-
-        for (let i in body.files) {
-            let file = body.files[i];
-
-            let size = sizeOf(file.attachment);
-
-            // @ts-ignore
-            body.attachments.push({
-                name: file.name,
-                id: j,
-                size: Buffer.byteLength(file.attachment),
-                content_type: "image/png",
-                height: size.height,
-                width: size.width,
-            });
-
-            j++;
-        }
-
-        // @ts-ignore
-        if (process.flags.state("debug"))
-            // @ts-ignore
-            console.debug({ attachments: body.attachments, form });
-
-        form.append("payload_json", JSON.stringify(body));
-
-        let isIterable = (obj: any) => {
-            if (obj == null) return false;
-            return typeof obj[Symbol.iterator] === "function";
-        };
-
-        if (!isIterable(body.files)) body.files = [];
-
-        let i = 0;
-        for (let file of body.files) {
-            form.append(`files[${i}]`, file.attachment, {
-                filename: file.name.replace("\r\n", "").replace("\n", ""),
-                contentType: "image/png",
-            });
-            i++;
-        }
-
-        if (!alreadyReplied) await this.deferUpdate();
-
-        let startedTimestamp = Date.now();
-        let req: any;
-        try {
-            req = await axios({
-                method: "patch",
-                url: url,
-                data: form,
-                headers: {
-                    "Content-Type": `multipart/form-data; boundary=${form.getBoundary()}`,
-                },
-            });
-        } catch (error) {
-            console.error(`[Axios IWR^FD] Error while uploading image`);
-            console.log(error);
-            if ((error as AxiosError)?.response?.data) {
-                // @ts-ignore
-                if ((error as AxiosError).response.data.code !== 10015)
-                    // Unknown Webhook
-                    console.log(
-                        JSON.stringify(
-                            (error as AxiosError)?.response?.data,
-                            null,
-                            2
-                        )
-                    );
-            }
-        }
-
-        let endTimestamp = Date.now();
-
-        process.lastApiLatency = endTimestamp - startedTimestamp;
-        return req;
-    }
-
-    private avatarURL() {
+    private avatarURL(): string {
         return `https://cdn.discordapp.com/avatars/${this.user.id}/${this.user.avatar}.png`;
     }
 
     /**
      * Parses a MessageEmbed object and returns its JSON representation.
-     * 
+     *
      * @param {MessageEmbed} embed - The MessageEmbed object to parse.
      * @returns {MessageEmbedData} The JSON representation of the embed.
      */
     static parseEmbed(embed: MessageEmbed): MessageEmbedData {
         let data = embed.toJSON();
         return data;
-    }
-}
-
-/**
- * Represents a text channel in a Discord interaction.
- */
-export class TextChannel {
-    interaction: Interaction;
-    id: string;
-
-    constructor(parent: Interaction) {
-        this.interaction = parent;
-        this.id = parent.data.channel_id;
-    }
-
-    /**
-     * Sets the channel ID.
-     * 
-     * @param {string} id - The ID of the channel.
-     */
-    set channel_id(id: string) {
-        this.id = id;
-    }
-
-    /**
-     * Sends a message to the specified channel.
-     * 
-     * @param {InteractionReplyData} data - The data for the message to be sent.
-     * @returns {Promise<Message>} A Promise that resolves to the sent message.
-     */
-    async send(data: InteractionReplyData) {
-        let res = await this.interaction.iwr(
-            `https://discord.com/api/v9/channels/${this.id}/messages`,
-            "post",
-            Interaction.parseMessage(data)
-        );
-
-        if (!res?.data)
-            console.warn(
-                `[TextChannel::send] HTTP 403 Forbidden -> POST /channels/${this.id}/messages`
-            );
-        if (!res) {
-            console.warn("NO Response from TextChannel.send()");
-            console.log({ data });
-            return null;
-        }
-
-        return new Message(res.data, this.interaction);
     }
 }
 
@@ -782,10 +515,10 @@ export interface InteractionReplyData {
     ephemeral?: boolean;
     flags?: number;
     content?: string;
-    fetchReply?: boolean;
     embeds?: MessageEmbed[];
     components?: MessageActionRow<any>[];
     files?: MessageAttachment[];
+    attachments?: MessageAttachment[];
 }
 
 /**
@@ -795,7 +528,6 @@ declare interface InteractionReplyFormatted {
     ephemeral?: boolean;
     flags?: number;
     content?: string;
-    fetchReply?: boolean;
     embeds?: MessageEmbedData[];
     components?: MessageComponentData[];
     attachments?: any[];
