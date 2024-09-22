@@ -24,7 +24,7 @@ export class REST {
         await this._app.register(fastifyExpress);
         this._client.interactionHandler();
         return new Promise((resolve, reject) => {
-            this._app.listen({ port: this._port }, () => {
+            this._app.listen({ port: this._port, host: '0.0.0.0' }, () => {
                 resolve(this._port);
             });
         });

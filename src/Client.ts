@@ -148,7 +148,7 @@ export interface Command<T = Interaction> {
     run(ICommandProps: ICommandArgument<T>): unknown;
 }
 
-interface Button {
+export interface Button {
     name: string;
     isCommand: boolean;
     run(buttonRunData: ButtonInteraction): unknown;

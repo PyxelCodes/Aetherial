@@ -224,7 +224,9 @@ export class Interaction extends Http {
                 return new Message(callback.data.resource.message, this);
 
                 // console.log(callback.data)
-            } catch (error) {}
+            } catch (error) {
+                console.log((error as AxiosError).response.data);
+            }
         }
     }
 

@@ -1,8 +1,8 @@
 import { readdirSync } from "fs";
 import { join } from "path";
-import { Cache, SlashCommandBuilder, Command } from "../";
+import { Cache, SlashCommandBuilder, Command, Button } from "../";
 
-export const loadButtons = (buttons: Cache<Command>, asJSON = false) => {
+export const loadButtons = (buttons: Cache<Button>, asJSON = false) => {
     let root = join(require.main.filename, "..");
     // Reads commands directory and feed into collection
     readdirSync(join(root, "./buttons"))
