@@ -2,7 +2,7 @@ import { readdirSync } from "fs";
 import { join } from "path";
 import { Cache, SlashCommandBuilder, Command } from "../";
 
-export const loadCommands = (commands: Cache<Command>) => {
+export const loadCommands = (commands: Cache<Command>, asJSON = false) => {
     let root = join(require.main.filename, '..');
     // Reads commands directory and feed into collection
     readdirSync(join(root, "./commands")).forEach(async (dir) => {
@@ -26,4 +26,6 @@ export const loadCommands = (commands: Cache<Command>) => {
             }
         }
     });
+
+    if(asJSON) return Object.fromEntries(commands);
 };
