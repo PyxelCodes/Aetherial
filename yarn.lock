@@ -361,12 +361,12 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@types/node@npm:^20.14.9":
-  version: 20.16.5
-  resolution: "@types/node@npm:20.16.5"
+"@types/node@npm:^22.6.0":
+  version: 22.6.0
+  resolution: "@types/node@npm:22.6.0"
   dependencies:
     undici-types: "npm:~6.19.2"
-  checksum: 10c0/6af7994129815010bcbc4cf8221865559c8116ff43e74a6549525c2108267596fc2d18aff5d5ecfe089fb60a119f975631343e2c65c52bfa0955ed9dc56733d6
+  checksum: 10c0/165fa685fbe51baf47948273487d1cf733a8802f0ddf3f07f357aec6d73012ff79be1982ba40ae6d30ac21ad0bebdbe373cf1cf8a307991130bc361a92d0c30b
   languageName: node
   linkType: hard
 
@@ -549,7 +549,7 @@ __metadata:
     "@swc/core": "npm:^1.6.6"
     "@types/eslint__js": "npm:^8.42.3"
     "@types/fastify-cors": "npm:^2.1.0"
-    "@types/node": "npm:^20.14.9"
+    "@types/node": "npm:^22.6.0"
     "@types/ws": "npm:^8.5.12"
     axios: "npm:^1.7.7"
     buffer-image-size: "npm:^0.6.4"
