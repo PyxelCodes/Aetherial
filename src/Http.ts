@@ -3,7 +3,7 @@ import axios, {
     AxiosResponse,
     InternalAxiosRequestConfig,
 } from "axios";
-import { Client, InteractionReplyData, Shard } from ".";
+import { Client, Interaction, InteractionReplyData, Shard } from ".";
 import sizeOf from "buffer-image-size";
 import FormData from "form-data";
 
@@ -35,8 +35,7 @@ export class Http {
                 headers: { Authorization: `Bot ${this.token}` },
                 params: queryString ?? {},
                 data: body ?? null, // Include body only if it's not null
-            })
-
+            });
         } catch (error: any) {
             // Handle Specific Errors
             if (error instanceof AxiosError) {
@@ -66,9 +65,19 @@ export class Http {
         url: string,
         alreadyReplied = false
     ) {
-        let form = this.createFormDataFileBody(body);
-
+        // @ts-ignore
+        let form = this.createFormDataFileBody({ data: body, type: 4 });
         try {
+            // if (alreadyReplied) {
+            //     await axios({
+            //         method: "patch",
+            //         url,
+            //         data: { attachments: [] },
+            //         headers: {
+            //             Authorization: `Bot ${this.token}`,
+            //         },
+            //     });
+            // }
             let res = await axios({
                 method: alreadyReplied ? "patch" : "post",
                 url,
@@ -99,7 +108,11 @@ export class Http {
         }
     }
 
-    private createFormDataFileBody(body: InteractionReplyData) {
+    private createFormDataFileBody(data: {
+        data: InteractionReplyData;
+        type: number;
+    }) {
+        let body = data.data;
         let form = new FormData();
         let j = 0;
         body.attachments = [];
@@ -117,7 +130,8 @@ export class Http {
             j++;
         }
 
-        form.append("payload_json", JSON.stringify(body));
+        form.append("payload_json", JSON.stringify({ type: 0x4, data: body }));
+        console.log(body);
         let isIterable = (obj: any) =>
             obj != null && typeof obj[Symbol.iterator] === "function";
 
@@ -125,7 +139,11 @@ export class Http {
 
         let i = 0;
         for (let file of body.files) {
-            form.append(`file${i}`, file.attachment, {
+            console.log(`files[${i}]`, file.attachment, {
+                filename: file.name.replace("\r\n", "").replace("\n", ""),
+                contentType: `image/png`,
+            });
+            form.append(`files[${i}]`, file.attachment, {
                 filename: file.name.replace("\r\n", "").replace("\n", ""),
                 contentType: `image/png`,
             });

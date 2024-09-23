@@ -73,7 +73,6 @@ export class Client extends EventEmitter {
     public interactionHandler() {
         this.rest._app.post("/interactions", async (req, res) => {
             // Setup handling
-
             const sig = req.headers["x-signature-ed25519"] as string;
             const timestamp = req.headers["x-signature-timestamp"] as string;
             const body = req.rawBody;
@@ -87,13 +86,17 @@ export class Client extends EventEmitter {
                 return res.status(401).send("Invalid request signature");
 
             if ((req.body as any)?.type === 1) {
+                console.log("Received PING");
                 return res.send({ type: 1 });
             }
 
-            this.emit(
-                "interactionCreate",
-                new Interaction(req.body as InteractionData, res, this)
+            let interaction = new Interaction(
+                req.body as InteractionData,
+                res,
+                this
             );
+            res.code(202) // this behaves sooo weird
+            this.emit("interactionCreate", interaction);
         });
     }
 

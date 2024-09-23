@@ -43,7 +43,6 @@ export class Interaction extends Http {
     ) {
         super(client.token);
         this.data = interactionData; // @ts-ignore
-        //if (process.flags.state('debug')) this.data.data = {};
         this.res = res;
         this.createdTimestamp = Date.now();
         this.options = new InteractionOptions(this.data.data, this);
@@ -198,14 +197,13 @@ export class Interaction extends Http {
         }
 
         this.replied = true;
-        this.res.status(202).send();
 
         if (data.files) {
             let callback = await this.iwrFiles(
                 data,
                 `${this.url}/interactions/${this.data.id}/${this.data.token}/callback`
             );
-            let msg = new Message(callback.data.ressource.message, this);
+            let msg = new Message(callback.data.resource.message, this);
             msg.client = this.client;
             return msg;
         } else {
@@ -228,6 +226,10 @@ export class Interaction extends Http {
                 console.log((error as AxiosError).response.data);
             }
         }
+    }
+
+    async replyAutocomplete(data: InteractionReplyData) {
+        await this.iwr(`${this.url}/interactions/${this.data.id}/${this.data.token}/callback`, "post", data);
     }
 
     /**
@@ -279,10 +281,7 @@ export class Interaction extends Http {
      * @returns void
      */
     async update(data: InteractionReplyData): Promise<void> {
-        this.res.send({
-            type: 0x7, // 0x7 type -> UPDATE_MESSAGE
-            data: Interaction.parseMessage(data),
-        });
+        await this.iwr(`${this.url}/interactions/${this.data.id}/${this.data.token}/callback`, "post", { type: 0x7, data: Interaction.parseMessage(data) });
     }
 
     /**
@@ -311,9 +310,7 @@ export class Interaction extends Http {
      * It also sets the `deffered` property of the class instance to `true`.
      */
     async defer() {
-        this.res.send({
-            type: 0x5, // 0x5 type -> DEFERRED_CHANNEL_MESSAGE_WITH_SOURCE
-        });
+        await this.iwr(`${this.url}/interactions/${this.data.id}/${this.data.token}/callback`, "post", { type: 0x5 });
         this.deffered = true;
     }
 
@@ -327,9 +324,7 @@ export class Interaction extends Http {
      * Sets the `deffered` flag to true.
      */
     async deferUpdate(): Promise<void> {
-        this.res.send({
-            type: 0x6, // 0x6 type -> DEFERRED_UPDATE_MESSAGE
-        });
+        await this.iwr(`${this.url}/interactions/${this.data.id}/${this.data.token}/callback`, "post", { type: 0x6 });
         this.deffered = true;
     }
 
