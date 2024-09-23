@@ -10,6 +10,7 @@
   "license": "MIT",
   "scripts": {
     "build": "tsc",
+    "lint": "eslint . --ext .ts",
     "prepublishOnly": "yarn build",
     "test": "cd test && tsc"
   },
