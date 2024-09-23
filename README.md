@@ -18,24 +18,37 @@ You will need a token and a public key from the discord developer platform
   })
 ```
 
+This also works with Components
+
+```js
+  client.on('interactionCreate', (interaction) => {
+    if(interaction.isButton()) {
+      interaction.reply({
+          content: "Hello, World!";
+      })
+    }
+  })
+```
+
 ### Using Commands
 
 Individual Command file located in `./commands/COMMAND_NAME.js`
+
 ```js
 module.exports = {
-    name: 'hello',
+    name: "hello",
     run: ({ interaction }) => {
-        interaction.reply({ content: "Hello, World!" })
-    }
-}
+        interaction.reply({ content: "Hello, World!" });
+    },
+};
 ```
 
 Using the in-built command loader which loads every command file in a subdirectory
 
-- index.js
-- commands
-    - info
-        - ping.js
+-   index.js
+-   commands
+    -   info
+        -   ping.js
 
 ```js
 Aetherial.loadCommands(client.commands);
@@ -65,7 +78,7 @@ interaction.reply({
     embeds: [
         new Aetherial.MessageEmbed()
             .setDescription(`This is an Embed!`)
-            .setColor(0xFF0000)
-    ]
-})
+            .setColor(0xff0000),
+    ],
+});
 ```
