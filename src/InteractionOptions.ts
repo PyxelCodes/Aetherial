@@ -1,6 +1,3 @@
-// im not gonna add types to this idc
-// I added them ;)
-
 import { Interaction } from './Interaction';
 
 /**
@@ -8,7 +5,7 @@ import { Interaction } from './Interaction';
  */
 export class InteractionOptions {
 
-    data: any;
+    data: any; // eslint-disable-line
     interaction: Interaction;
 
     /**
@@ -17,7 +14,7 @@ export class InteractionOptions {
      * @param data - The data for the InteractionOptions.
      * @param interaction - The interaction associated with the InteractionOptions.
      */
-    constructor(data: any, interaction: Interaction) {
+    constructor(data: any, interaction: Interaction) { // eslint-disable-line
         this.data = data;
         this.interaction = interaction;
     }
@@ -106,7 +103,7 @@ export class InteractionOptions {
      */
     getChannel(name: string) {
         // supplies resolved channel!
-        let id =
+        const id =
             this.data.options?.find((x: { name: string; }) => x.name === name)?.value ??
             this.data.options?.[0]?.options?.find((x: { name: string; }) => x.name === name)
                 ?.value;
@@ -127,7 +124,7 @@ export class InteractionOptions {
      */
     getUser(name: string) {
         // supplies resolved user!
-        let id =
+        const id =
             this.data.options?.find((x: { name: string; }) => x.name === name)?.value ??
             this.data.options?.[0]?.options?.find((x: { name: string; }) => x.name === name)
                 ?.value;

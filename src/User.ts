@@ -1,6 +1,6 @@
 import { Client } from "./Client";
 import { Http } from "./Http";
-import { Interaction, InteractionReplyData } from "./Interaction";
+import { InteractionReplyData } from "./Interaction";
 import { User as CacheUser } from "./core/CacheManager";
 
 /**
@@ -114,7 +114,7 @@ export class User {
         message: InteractionReplyData,
         client: Client
     ) {
-        let http = new Http(client.token);
+        const http = new Http(client.token);
         await http
             .iwr(`https://discord.com/api/v9/users/@me/channels`, `post`, {
                 recipient_id: userId,

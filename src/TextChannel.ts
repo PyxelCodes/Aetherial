@@ -28,7 +28,7 @@ export class TextChannel {
      * @returns {Promise<Message>} A Promise that resolves to the sent message.
      */
     async send(data: InteractionReplyData): Promise<Message> {
-        let res = await this.interaction.iwr(
+        const res = await this.interaction.iwr(
             `https://discord.com/api/v9/channels/${this.id}/messages`,
             "post",
             Interaction.parseMessage(data)

@@ -9,8 +9,7 @@ export class Cache<CacheType> extends Map<string, CacheType> {
             key: string,
             map: Map<string, CacheType>
         ) => boolean
-    ): CacheType | undefined {
-        // @ts-ignore
+    ): CacheType | undefined { // @ts-expect-error - This is valid
         return Array.from(this.values()).find(callback);
     }
 }

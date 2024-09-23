@@ -143,14 +143,10 @@ export class Message {
      * @returns {Promise<void>} A promise that resolves when the reply message is sent.
      */
     public async reply(text: string) {
-        let data = {
-            content: text,
-        };
-
         await this.interaction.iwr(
             `https://discord.com/api/v9/channels/${this.channel}/messages`,
             "post",
-            data
+            { content: text }
         );
     }
 
@@ -251,7 +247,15 @@ declare interface MessageAuthor {
 /**
  * Represents a message attachment.
  */
-declare interface MessageAttachment { }
+declare interface MessageAttachment {
+    id: string;
+    filename: string;
+    size: number;
+    url: string;
+    proxy_url: string;
+    height: number;
+    width: number;
+}
 
 /**
  * Represents a message embed.
@@ -267,7 +271,10 @@ declare interface MessageEmbed {
 /**
  * Represents a message component.
  */
-declare interface MessageComponent { }
+declare interface MessageComponent {
+    type: number;
+    components: MessageComponent[];
+}
 
 /**
  * Represents an interaction within a message.

@@ -31,12 +31,12 @@ export class MessageActionRow<T extends MessageComponent = undefined> {
     }
 
     private parseComponents() {
-        let parsed = [];
+        const parsed = [];
 
-        for (let component of this.components) {
+        for (const component of this.components) {
             try {
                 parsed.push(component.toJSON());
-            } catch (e) {
+            } catch {
                 // already JSON parsed (-> ButtonCollector.timeout)
                 parsed.push(component);
             }

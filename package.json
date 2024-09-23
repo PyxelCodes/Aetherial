@@ -14,11 +14,15 @@
     "test": "cd test && tsc"
   },
   "devDependencies": {
+    "@eslint/js": "^9.11.1",
     "@swc/core": "^1.6.6",
+    "@types/eslint__js": "^8.42.3",
     "@types/fastify-cors": "^2.1.0",
     "@types/node": "^20.14.9",
     "@types/ws": "^8.5.12",
-    "typescript": "^5.5.2"
+    "eslint": "^9.11.1",
+    "typescript": "^5.5.2",
+    "typescript-eslint": "^8.7.0"
   },
   "dependencies": {
     "@fastify/cors": "^9.0.1",

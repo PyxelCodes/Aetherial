@@ -291,12 +291,12 @@ export class Interaction extends Http {
      */
     async followUp(data: InteractionReplyData): Promise<Message> {
         if (data.ephemeral) data.flags = 64;
-        let callback = await this.iwr(
+        const callback = await this.iwr(
             `${this.url}/webhooks/${this.client.user.id}/${this.data.token}`,
             "post",
             Interaction.parseMessage(data)
         );
-        let msg = new Message(callback.data, this);
+        const msg = new Message(callback.data, this);
         return msg;
     }
 
@@ -345,7 +345,7 @@ export class Interaction extends Http {
      * @returns {InteractionReplyFormatted} The formatted `InteractionReplyFormatted` object.
      */
     static parseMessage(msg: InteractionReplyData): InteractionReplyFormatted {
-        let data: InteractionReplyFormatted = {} as InteractionReplyFormatted;
+        const data: InteractionReplyFormatted = {} as InteractionReplyFormatted;
         // Parse embeds, components and attachments
 
         //fallback
@@ -353,13 +353,13 @@ export class Interaction extends Http {
             return { content: msg };
         }
 
-        for (let i in msg) {
+        for (const i in msg) {
             if (i === "embeds" || i === "components" || i === "attachments") {
                 data[i] = [];
 
                 if (msg[i].length > 0 && msg[i][0] == undefined) continue;
 
-                for (let e of msg[i]) {
+                for (const e of msg[i]) {
                     if (i === "embeds")
                         data.embeds.push(
                             Interaction.parseEmbed(e as MessageEmbed)
@@ -387,8 +387,7 @@ export class Interaction extends Http {
      * @returns {MessageEmbedData} The JSON representation of the embed.
      */
     static parseEmbed(embed: MessageEmbed): MessageEmbedData {
-        let data = embed.toJSON();
-        return data;
+        return embed.toJSON();
     }
 }
 
