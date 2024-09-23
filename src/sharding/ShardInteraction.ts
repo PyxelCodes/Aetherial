@@ -33,7 +33,7 @@ export class ShardInteraction extends Http {
         return this.data.data.name;
     }
 
-    async reply(data: InteractionReplyData, replied = false) {
+    async reply(data: InteractionReplyData) {
         if (data.ephemeral) data.flags = 1 << 6;
 
         if (this.replied) {
@@ -44,7 +44,7 @@ export class ShardInteraction extends Http {
 
         // TODO; data.files
 
-        let callback = await axios.post(
+        const callback = await axios.post(
             `https://discord.com/api/v9/interactions/${this.data.id}/${this.data.token}/callback`,
             { type: 0x4, data: Interaction.parseMessage(data) },
             { headers: { Authorization: `Bot ${this.client.token}` } }
@@ -69,7 +69,7 @@ export class ShardInteraction extends Http {
     }
 
     async fetchReply() {
-        let msg = await this.RESTfetchReply();
+        const msg = await this.RESTfetchReply();
         if (msg == null) return null;
         this.message = new Message(msg, this);
         this.message.client = this.client.client;

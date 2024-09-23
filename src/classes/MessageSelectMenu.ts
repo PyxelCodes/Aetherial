@@ -14,7 +14,7 @@ export class MessageSelectMenu extends MessageComponent<MessageSelectMenu> {
     }
 
     public setOptions(options: MessageSelectMenuOptions[]) {
-        for (let i in options) {
+        for (const i in options) {
             options[i] = this.formatOption(options[i]);
         }
         this.options = options;
@@ -22,10 +22,8 @@ export class MessageSelectMenu extends MessageComponent<MessageSelectMenu> {
     }
 
     public formatOption(option: MessageSelectMenuOptions) {
-        if (option.emoji) {
-            // @ts-ignore
+        if (option.emoji) { // @ts-expect-error The api wants it like this -> type mismatch
             option.emoji = {
-                // Regex is so annoying sometimes
                 name: option.emoji.match(/([a-zA-Z_])+/gm)[0],
                 id: option.emoji.match(/([0-9])+/gm)[0]
             };
@@ -40,7 +38,7 @@ export class MessageSelectMenu extends MessageComponent<MessageSelectMenu> {
     }
 
     public addOptions(...options: MessageSelectMenuOptions[]) {
-        for (let i in options) {
+        for (const i in options) {
             options[i] = this.formatOption(options[i]);
         }
         this.options = this.options.concat(options);

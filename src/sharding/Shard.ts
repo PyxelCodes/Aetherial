@@ -57,7 +57,7 @@ export class Shard extends EventEmitter {
             "Shard::message => ",
             JSON.stringify(JSON.parse(data.toString()), null, 2)
         );
-        let o = this.parseOp(this.parse(data));
+        const o = this.parseOp(this.parse(data));
 
         if (o instanceof OP_INTERACTION_CREATE) {
             this.emit("interactionCreate", o.interaction);
@@ -174,11 +174,11 @@ export class Shard extends EventEmitter {
                             setTimeout(
                                 (() => {
                                     // TODO this is horrible
-                                    let guild_ids = Array.from(
+                                    const guild_ids = Array.from(
                                         this.guilds.keys()
                                     );
-                                    let interval = setInterval(() => {
-                                        let next = guild_ids.shift();
+                                    const interval = setInterval(() => {
+                                        const next = guild_ids.shift();
                                         if (!next)
                                             return clearInterval(interval);
                                         this.requestGuildMembers(next);
@@ -263,9 +263,9 @@ export class Shard extends EventEmitter {
             this.emit("wssReady", null);
         });
 
-        let shardId = parseInt(process.argv[2]);
-        let shardCount = parseInt(process.argv[3]);
-        let intents = parseInt(process.argv[4]);
+        const shardId = parseInt(process.argv[2]);
+        const shardCount = parseInt(process.argv[3]);
+        const intents = parseInt(process.argv[4]);
 
         this.shard = [shardId, shardCount];
         this.shardId = shardId;

@@ -6,7 +6,7 @@ export class IntentBuilder {
     }
 
     public addIntent(intent_id: ValidIntent) {
-        let intent = validIntents.indexOf(intent_id);
+        const intent = validIntents.indexOf(intent_id);
         if (intent === -1) throw new Error(`Invalid intent: ${intent_id}`);
         this.intent |= 1 << intent;
         return this;

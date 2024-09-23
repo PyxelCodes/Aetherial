@@ -42,7 +42,7 @@ export class Interaction extends Http {
         client: Client
     ) {
         super(client.token);
-        this.data = interactionData; // @ts-ignore
+        this.data = interactionData;
         this.res = res;
         this.createdTimestamp = Date.now();
         this.options = new InteractionOptions(this.data.data, this);
@@ -53,19 +53,16 @@ export class Interaction extends Http {
                 `[Interaction] member is null -> ${this.data.id} -> command: ${
                     this.data?.data?.name || this.data?.data?.custom_id
                 }`
-            );
-            // @ts-expect-error
+            ); // @ts-expect-error need to set this
             this.data.member = {};
         }
         this.user = new User(this.data.member.user);
         this.client.cache.addUser(this.user);
-        if (!this.isCommand()) {
-            //@ts-ignore
+        if (!this.isCommand()) { // @ts-expect-error need to implement ButtonInteraction/SelectMenuInteraction
             this.message = new Message(this.data.message, this);
         }
 
-        if (this.isSelectMenu()) {
-            // @ts-ignore
+        if (this.isSelectMenu()) { // @ts-expect-error need to implement ButtonInteraction/SelectMenuInteraction
             this.values = this.data.data.values;
         }
     }
@@ -76,8 +73,6 @@ export class Interaction extends Http {
      * @returns {string} The guild ID.
      */
     get guild() {
-        // @ts-ignore
-        //if (process.flags.state('debug')) return this.data.guildId;
         return this.data.guild_id;
     }
 
@@ -86,8 +81,6 @@ export class Interaction extends Http {
      * @returns {string} The name of the command.
      */
     get commandName() {
-        // @ts-ignore
-        //if (process.flags.state('debug')) return this.data.commandName;
         return this.data?.data?.name;
     }
 
@@ -124,8 +117,6 @@ export class Interaction extends Http {
      * @returns {boolean} Returns true if the interaction is a command, otherwise false.
      */
     public isCommand(): this is Interaction {
-        // @ts-ignore
-        //if (process.flags.state('debug')) return this.data.isCommand();
         return this.data.type == 2;
     }
 
@@ -134,8 +125,6 @@ export class Interaction extends Http {
      * @returns {boolean} Returns true if the interaction is a button, otherwise false.
      */
     public isButton(): boolean {
-        // @ts-ignore
-        //if (process.flags.state('debug')) return this.data.isButton();
         return this.data.type == 3 && this.data.data.component_type == 2;
     }
 
@@ -144,8 +133,6 @@ export class Interaction extends Http {
      * @returns {boolean} Returns true if the interaction is a modal submit, otherwise false.
      */
     public isModalSubmit(): boolean {
-        // @ts-ignore
-        //if (process.flags.state('debug')) return this.data.isModalSubmit();
         return this.data.type == 5;
     }
 
@@ -154,8 +141,6 @@ export class Interaction extends Http {
      * @returns {boolean} True if the interaction is a select menu, false otherwise.
      */
     public isSelectMenu(): boolean {
-        // @ts-ignore
-        //if (process.flags.state('debug')) return this.data.isSelectMenu();
         return (
             this.data.type == 3 &&
             [
@@ -199,21 +184,20 @@ export class Interaction extends Http {
         this.replied = true;
 
         if (data.files) {
-            let callback = await this.iwrFiles(
+            const callback = await this.iwrFiles(
                 data,
                 `${this.url}/interactions/${this.data.id}/${this.data.token}/callback`
             );
-            let msg = new Message(callback.data.resource.message, this);
+            const msg = new Message(callback.data.resource.message, this);
             msg.client = this.client;
             return msg;
         } else {
             try {
-                let callback = await this.iwr(
+                const callback = await this.iwr(
                     `${this.url}/interactions/${this.data.id}/${this.data.token}/callback`,
                     "post",
                     {
                         type: 4, // 0x4 type -> CHANNEL_MESSAGE_WITH_SOURCE
-                        // @ts-ignore
                         data: Interaction.parseMessage(data),
                     },
                     { with_response: true }

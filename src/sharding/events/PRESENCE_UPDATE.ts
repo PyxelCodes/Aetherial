@@ -1,4 +1,3 @@
-import { Guild } from "../Shard";
 import { PresenceState } from "../classes/PresenceState";
 
 export class OP_PRESENCE_UPDATE {
@@ -10,7 +9,5 @@ export class OP_PRESENCE_UPDATE {
         this.data = data;
 
         presences.set(this.data.d.user.id, this.data.d);
-
-        // @ts-ignore
     }
 }

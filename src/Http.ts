@@ -1,9 +1,11 @@
 import axios, {
     AxiosError,
     AxiosResponse,
-    InternalAxiosRequestConfig,
 } from "axios";
-import { Client, Interaction, InteractionReplyData, Shard } from ".";
+import {
+    InteractionReplyData,
+    MessageAttachment,
+} from ".";
 import sizeOf from "buffer-image-size";
 import FormData from "form-data";
 
@@ -23,8 +25,13 @@ export class Http {
      * @param body - The request body (optional).
      * @returns {Promise<AxiosResponse<any, any>>} A Promise that resolves to the AxiosResponse object.
      */
-    async iwr(url: string, type?: string, body?: any, queryString?: any) {
-        let req: AxiosResponse<any>;
+    async iwr(
+        url: string,
+        type?: string,
+        body?: any, // eslint-disable-line
+        queryString?: any // eslint-disable-line
+    ) {
+        let req: AxiosResponse<any>; // eslint-disable-line
 
         try {
             // IWebRequest to Discord API (Axios)
@@ -36,7 +43,7 @@ export class Http {
                 params: queryString ?? {},
                 data: body ?? null, // Include body only if it's not null
             });
-        } catch (error: any) {
+        } catch (error) {
             // Handle Specific Errors
             if (error instanceof AxiosError) {
                 console.error(
@@ -65,20 +72,9 @@ export class Http {
         url: string,
         alreadyReplied = false
     ) {
-        // @ts-ignore
-        let form = this.createFormDataFileBody({ data: body, type: 4 });
+        const form = this.createFormDataFileBody({ data: body, type: 4 });
         try {
-            // if (alreadyReplied) {
-            //     await axios({
-            //         method: "patch",
-            //         url,
-            //         data: { attachments: [] },
-            //         headers: {
-            //             Authorization: `Bot ${this.token}`,
-            //         },
-            //     });
-            // }
-            let res = await axios({
+            const res = await axios({
                 method: alreadyReplied ? "patch" : "post",
                 url,
                 data: form,
@@ -112,13 +108,13 @@ export class Http {
         data: InteractionReplyData;
         type: number;
     }) {
-        let body = data.data;
-        let form = new FormData();
+        const body = data.data;
+        const form = new FormData();
         let j = 0;
         body.attachments = [];
 
-        for (let i in body.files) {
-            let size = sizeOf(body.files[i].attachment);
+        for (const i in body.files) {
+            const size = sizeOf(body.files[i].attachment);
             body.attachments.push({
                 name: body.files[i].name,
                 id: j,
@@ -126,19 +122,19 @@ export class Http {
                 content_type: `image/png`,
                 height: size.height,
                 width: size.width,
-            } as any);
+            } as any); // eslint-disable-line
             j++;
         }
 
         form.append("payload_json", JSON.stringify({ type: 0x4, data: body }));
         console.log(body);
-        let isIterable = (obj: any) =>
+        const isIterable = (obj: ArrayLike<MessageAttachment>) =>
             obj != null && typeof obj[Symbol.iterator] === "function";
 
         if (!isIterable(body.files)) body.files = [];
 
         let i = 0;
-        for (let file of body.files) {
+        for (const file of body.files) {
             console.log(`files[${i}]`, file.attachment, {
                 filename: file.name.replace("\r\n", "").replace("\n", ""),
                 contentType: `image/png`,
@@ -151,21 +147,5 @@ export class Http {
         }
 
         return form;
-    }
-
-    static addInstanceRequestInterceptor(instance: any) {
-        instance.interceptors.request.use(
-            (config: InternalAxiosRequestConfig) => {
-                config.headers["request-startTime"] = process.hrtime();
-                return config;
-            }
-        );
-        instance.interceptors.response.use((response: AxiosResponse) => {
-            const start = response.config.headers["request-startTime"];
-            const end = process.hrtime(start);
-            const milliseconds = Math.round(end[0] * 1000 + end[1] / 1e6);
-            response.headers["X-Response-Time"] = milliseconds;
-            return response;
-        });
     }
 }

@@ -70,8 +70,6 @@ export class SlashCommandBuilder {
 
     private _sharedAddOptionMethod<T>(input: inputFunction<T>, Instance: T) {
         const { options } = this;
-
-        // @ts-ignore
         const result = typeof input === 'function' ? input(Instance) : input;
 
         options.push(result);

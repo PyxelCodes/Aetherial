@@ -8,7 +8,7 @@ export interface PresenceState {
         mobile?: 'online' | 'dnd' | 'idle';
         desktop?: 'online' | 'dnd' | 'idle';
     }
-    broadcast: any;
+    broadcast: string;
     activities: Activity[];
 }
 
@@ -21,11 +21,11 @@ export interface Activity {
     sync_id: string;
     state: string;
     session_id: string;
-    party: any
+    party: string
     name: string;
     id: string;
     details: string;
     flags: number;
     created_at: number;
-    assets: any
+    assets: string
 }

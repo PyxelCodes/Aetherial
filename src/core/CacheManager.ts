@@ -24,8 +24,7 @@ export class CacheManager {
     public addGuildMember(member: GuildMember) {
         if (member.user) {
             this.users.set(member.user.id, member.user);
-        } else {
-            // @ts-ignore
+        } else { // @ts-expect-error - Types are not accurate
             this.users.set(member.id, member);
         }
     }

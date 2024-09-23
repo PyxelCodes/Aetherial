@@ -5,10 +5,10 @@ import { EventEmitter } from 'events';
 
 const sleep = (ms = 0) => new Promise((resolve) => setTimeout(resolve, ms));
 
-export declare interface ShardingManager {
+export declare interface ShardingManager { // eslint-disable-line
     on(event: 'shardReady', listener: (data: { shardId: number, shardCount: number }) => void): this;
 }
-export class ShardingManager extends EventEmitter {
+export class ShardingManager extends EventEmitter { // eslint-disable-line
     shards: Map<number, ChildProcess> = new Map();
     private file: string = null;
 
@@ -24,7 +24,7 @@ export class ShardingManager extends EventEmitter {
 
     async getShardCount() {
         try {
-            let res = await axios.get(
+            const res = await axios.get(
                 `https://discord.com/api/v10/gateway/bot`,
                 { headers: { Authorization: `Bot ${this.token}` } }
             );
@@ -41,9 +41,9 @@ export class ShardingManager extends EventEmitter {
 
     async spawn() {
         if(!this.file) throw new Error(`No file provided to spawn shards from\n${'HELP'.green} -> Use ShardingManager.config({ file: "path/to/file" }) to set the file path\n`);
-        let shardCount = await this.getShardCount();
+        const shardCount = await this.getShardCount();
         for (let i = 0; i < shardCount; i++) {
-            let cp = fork('', {
+            const cp = fork('', {
                 stdio: 'inherit',
                 execArgv: [
                     `${this.file}`,
@@ -72,7 +72,7 @@ export class ShardingManager extends EventEmitter {
         }
 
         process.on('beforeExit', () => {
-            for (let shard of this.shards.values()) {
+            for (const shard of this.shards.values()) {
                 shard.kill();
             }
         });

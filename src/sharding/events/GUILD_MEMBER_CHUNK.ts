@@ -12,11 +12,11 @@ export class OP_GUILD_MEMBER_CHUNK {
         this.data = data;
 
         // push members to guild stack
-        for (let member of data.d.members) {
-            let ref = guilds.get(data.d.guild_id);
+        for (const member of data.d.members) {
+            const ref = guilds.get(data.d.guild_id);
 
             if (ref) {
-                let i = ref.members.findIndex(
+                const i = ref.members.findIndex(
                     (x) => x.user.id === member.user.id
                 );
                 if (i > -1) {
@@ -29,7 +29,7 @@ export class OP_GUILD_MEMBER_CHUNK {
 
         // push presences to presence stack
         if (hasPresenceState) {
-            for (let presence of data.d.presences) {
+            for (const presence of data.d.presences) {
                 presences.set(presence.user.id, presence);
             }
         }
@@ -66,10 +66,11 @@ interface IGuildMember {
     global_name: string;
     display_name: string;
     discriminator: string;
-    clan: any;
+    clan: string;
     bot: boolean;
-    avatar_decoration_data: any;
+    avatar_decoration_data: string;
     avatar: string;
 }
 
-type IRole = any; // TODO
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+type IRole = any; // TODO: Implement role interface

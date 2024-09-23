@@ -28,7 +28,7 @@ export class MessageButton
             return this;
         }
 
-        let formattedEmoji = {
+        const formattedEmoji = {
             // Regex is so annoying sometimes
             name: emoji.match(/([a-zA-Z_])+/gm)[0],
             id: emoji.match(/([0-9])+/gm).slice(-1)[0]

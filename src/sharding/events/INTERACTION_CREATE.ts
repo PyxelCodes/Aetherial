@@ -20,9 +20,9 @@ export interface InteractionCreateData {
     id: string;
     guild_locale: string;
     guild_id: string;
-    guild: { locale: string; id: string; features: any[] };
-    entitlements: any[]; // idk what these are
-    entitlement_sku_ids: any[];
+    guild: { locale: string; id: string; features: string[] };
+    entitlements: string[]; // idk what these are
+    entitlement_sku_ids: string[];
     data: {
         type: number;
         name: string;
@@ -49,7 +49,7 @@ interface TextChannel {
     name: string;
     last_message_id: string;
     id: string;
-    icon_emoji: any;
+    icon_emoji: string;
     guild_id: string;
     flags: number;
 }

@@ -8,7 +8,7 @@ export class OP_READY {
     ) {
         this.data = data;
         if (this.data.d.guilds) {
-            for (let guild in this.data.d.guilds) {
+            for (const guild in this.data.d.guilds) {
                 set.set(this.data.d.guilds[guild].id, this.data.d.guilds[guild]);
             }
         }

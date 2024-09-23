@@ -9,12 +9,9 @@ export class OP_GUILD_CREATE {
         guilds.set(this.data.d.id, this.data.d);
 
         if(this.data.d.presences) {
-            for(let presence of this.data.d.presences) {
-                // @ts-ignore
+            for(const presence of this.data.d.presences) {
                 presences.set(presence.user.id, presence);
             }
         }
-
-        // @ts-ignore
     }
 }
