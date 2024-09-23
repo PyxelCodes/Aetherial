@@ -1,9 +1,9 @@
 import axios from "axios";
-import { Interaction, InteractionReplyData } from "../Interaction";
 import { Shard } from "./Shard";
 import { InteractionCreateData } from "./events/INTERACTION_CREATE";
 import { Message } from "../Message";
 import { Http } from "../Http";
+import { BaseInteraction, InteractionReplyData } from "../interactions/BaseInteraction";
 
 export class ShardInteraction extends Http {
     created_at: number;
@@ -46,7 +46,7 @@ export class ShardInteraction extends Http {
 
         const callback = await axios.post(
             `https://discord.com/api/v9/interactions/${this.data.id}/${this.data.token}/callback`,
-            { type: 0x4, data: Interaction.parseMessage(data) },
+            { type: 0x4, data: BaseInteraction.parseMessage(data) },
             { headers: { Authorization: `Bot ${this.client.token}` } }
         );
 

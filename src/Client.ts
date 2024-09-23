@@ -5,9 +5,22 @@ import { User } from "./User";
 import { CacheManager } from "./core/CacheManager";
 import { Cache } from "./core/Cache";
 import { SlashCommandBuilder } from "./classes/SlashBuilder/SlashCommandBuilder";
-import { Interaction, InteractionData } from "./Interaction";
 import { REST } from "./rest/rest";
 import nacl from "tweetnacl";
+import { AutoCompleteInteraction } from "./interactions/AutoCompleteInteraction";
+import { CommandInteraction } from "./interactions/CommandInteraction";
+import { ModalInteraction } from "./interactions/ModalInteraction";
+import { SelectMenuInteraction } from "./interactions/SelectMenuInteraction";
+import { InteractionData } from "./interactions/BaseInteraction";
+import { ButtonInteraction } from "./interactions/ButtonInteraction";
+
+type Interaction =
+    | AutoCompleteInteraction
+    | ButtonInteraction
+    | CommandInteraction
+    | ModalInteraction
+    | SelectMenuInteraction;
+
 //eslint-disable-next-line
 export declare interface Client {
     on(event: "ready", listener: () => void): this;
@@ -90,13 +103,40 @@ export class Client extends EventEmitter {
                 return res.send({ type: 1 });
             }
 
-            const interaction = new Interaction(
-                req.body as InteractionData,
-                res,
-                this
-            );
             res.code(202); // this behaves sooo weird
-            this.emit("interactionCreate", interaction);
+
+            const iData = req.body as InteractionData;
+
+            if (iData.type == 0x2)
+                return this.emit(
+                    "interactionCreate",
+                    new CommandInteraction(iData, res, this)
+                );
+            if (iData.type == 0x3 && iData.data.component_type == 0x2)
+                return this.emit(
+                    "interactionCreate",
+                    new ButtonInteraction(iData, res, this)
+                );
+            if (iData.type == 0x5)
+                return this.emit(
+                    "interactionCreate",
+                    new ModalInteraction(iData, res, this)
+                );
+            if (iData.type == 0x4)
+                return this.emit(
+                    "interactionCreate",
+                    new AutoCompleteInteraction(iData, res, this)
+                );
+            if (
+                iData.type == 0x3 &&
+                [3, 5, 6, 7, 8].includes(iData.data.component_type)
+            )
+                return this.emit(
+                    "interactionCreate",
+                    new SelectMenuInteraction(iData, res, this)
+                );
+
+            console.error("Unknown interaction type", iData.type);
         });
     }
 
@@ -154,10 +194,10 @@ export interface Command<T = Interaction> {
 export interface Button {
     name: string;
     isCommand: boolean;
-    run(buttonRunData: ButtonInteraction): unknown;
+    run(buttonRunData: IButtonInteraction): unknown;
 }
 
-interface ButtonInteraction {
+interface IButtonInteraction {
     interaction: Interaction;
     data: string[];
 }

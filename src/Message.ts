@@ -1,5 +1,6 @@
+import { InteractionLike } from ".";
 import { Client } from "./Client";
-import { Interaction, InteractionReplyData } from "./Interaction";
+import { BaseInteraction, InteractionReplyData } from "./interactions/BaseInteraction";
 import { ShardInteraction } from "./sharding/ShardInteraction";
 
 /**
@@ -8,7 +9,7 @@ import { ShardInteraction } from "./sharding/ShardInteraction";
 export class Message {
 
     data: MessageData;
-    interaction: Interaction | ShardInteraction;
+    interaction: InteractionLike | ShardInteraction;
     components: { type: number; components: MessageComponent }[];
     client: Client;
     createdTimestamp: number;
@@ -20,7 +21,7 @@ export class Message {
      * @param {MessageData} data - The data for the message.
      * @param {Interaction | ShardInteraction} client - The interaction client.
      */
-    constructor(data: MessageData, client: Interaction | ShardInteraction) {
+    constructor(data: MessageData, client: InteractionLike | ShardInteraction) {
         this.data = data;
         this.interaction = client;
         if (client) {
@@ -118,7 +119,7 @@ export class Message {
      * @returns A Promise that resolves when the message is successfully edited.
      */
     public async edit(data: InteractionReplyData) {
-        if (data?.files?.length && this.interaction instanceof Interaction) {
+        if (data?.files?.length && this.interaction instanceof BaseInteraction) {
             await this.interaction.iwrFiles(
                 data,
                 `${this.interaction.url}/webhooks/${this.client.user.id}/${this.interaction.data.token}/messages/@original`,

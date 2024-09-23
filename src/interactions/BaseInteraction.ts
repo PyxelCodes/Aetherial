@@ -1,122 +1,46 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
-import { AxiosError } from "axios";
-import { Client } from "./Client";
-import { InteractionOptions } from "./InteractionOptions";
-import { Message, MessageData } from "./Message";
-import { User } from "./User";
-import {
-    MessageActionRow,
-    MessageComponentData,
-} from "./classes/MessageActionRow";
-import { MessageAttachment } from "./classes/MessageAttachment";
-import { MessageEmbed, MessageEmbedData } from "./classes/MessageEmbed";
-import { TextInput } from "./classes/Modal";
 import { FastifyReply } from "fastify";
-import { TextChannel } from "./TextChannel";
-import { Http } from "./Http";
+import {
+    Client,
+    InteractionOptions,
+    Message,
+    MessageActionRow,
+    MessageAttachment,
+    MessageEmbed,
+} from "..";
+import { CommandInteraction } from "./CommandInteraction";
+import { ButtonInteraction } from "./ButtonInteraction";
+import { Http } from "../Http";
+import { AxiosError } from "axios";
+import { MessageEmbedData } from "../classes/MessageEmbed";
+import { AutoCompleteInteraction } from "./AutoCompleteInteraction";
+import { ModalInteraction } from "./ModalInteraction";
+import { SelectMenuInteraction } from "./SelectMenuInteraction";
+import { MessageComponentData } from "../classes/MessageActionRow";
+import { MessageData } from "../Message";
 
-export class Interaction extends Http {
+export class BaseInteraction extends Http {
     data: InteractionData;
     res: FastifyReply;
-    message: Message;
-    options: InteractionOptions;
     client: Client;
-    user: User;
-    channel: TextChannel;
-    deffered: boolean = false;
-    createdTimestamp: number;
     replied: boolean = false;
-    values?: string[];
-    url = `https://discord.com/api/v9`;
+    deffered: boolean = false;
+    options: InteractionOptions;
+    createdTimestamp: number;
 
-    /**
-     * Constructs a new instance of the Interaction class.
-     * @constructor
-     * @param interactionData - The interaction data.
-     * @param res - The Fastify reply object.
-     * @param client - The client object.
-     */
-    constructor(
-        interactionData: InteractionData,
-        res: FastifyReply,
-        client: Client
-    ) {
+    constructor(data: InteractionData, res: FastifyReply, client: Client) {
         super(client.token);
-        this.data = interactionData;
-        this.res = res;
         this.createdTimestamp = Date.now();
-        this.options = new InteractionOptions(this.data.data, this);
+        this.res = res;
+        this.data = data;
         this.client = client;
-        this.channel = new TextChannel(this);
-        if (!this.data.member) {
-            console.warn(
-                `[Interaction] member is null -> ${this.data.id} -> command: ${
-                    this.data?.data?.name || this.data?.data?.custom_id
-                }`
-            ); // @ts-expect-error need to set this
-            this.data.member = {};
-        }
-        this.user = new User(this.data.member.user);
-        this.client.cache.addUser(this.user);
-        if (!this.isCommand()) { // @ts-expect-error need to implement ButtonInteraction/SelectMenuInteraction
-            this.message = new Message(this.data.message, this);
-        }
-
-        if (this.isSelectMenu()) { // @ts-expect-error need to implement ButtonInteraction/SelectMenuInteraction
-            this.values = this.data.data.values;
-        }
-    }
-
-    /**
-     * Gets the guild ID associated with this interaction.
-     *
-     * @returns {string} The guild ID.
-     */
-    get guild() {
-        return this.data.guild_id;
-    }
-
-    /**
-     * Gets the name of the command.
-     * @returns {string} The name of the command.
-     */
-    get commandName() {
-        return this.data?.data?.name;
-    }
-
-    /**
-     * Gets the custom ID of the interaction.
-     *
-     * @return {string} The custom ID of the interaction, or undefined if it is not available.
-     */
-    get customId() {
-        return this.data?.data?.custom_id;
-    }
-
-    // This is used for backend tampering to allow redirection of button commands to the command handler
-    /**
-     * Sets the name of the command.
-     *
-     * @param name - The name of the command.
-     */
-    set commandName(name: string) {
-        this.data.data.name = name;
-    }
-
-    /**
-     * Sets the custom ID for the interaction.
-     *
-     * @param id - The custom ID to set.
-     */
-    set customId(id: string) {
-        this.data.data.custom_id = id;
+        this.options = new InteractionOptions(this.data.data, this);
     }
 
     /**
      * Checks if the interaction is a command.
      * @returns {boolean} Returns true if the interaction is a command, otherwise false.
      */
-    public isCommand(): this is Interaction {
+    public isCommand(): this is CommandInteraction {
         return this.data.type == 2;
     }
 
@@ -124,7 +48,7 @@ export class Interaction extends Http {
      * Checks if the interaction is a button.
      * @returns {boolean} Returns true if the interaction is a button, otherwise false.
      */
-    public isButton(): boolean {
+    public isButton(): this is ButtonInteraction {
         return this.data.type == 3 && this.data.data.component_type == 2;
     }
 
@@ -132,38 +56,25 @@ export class Interaction extends Http {
      * Checks if the interaction is a modal submit.
      * @returns {boolean} Returns true if the interaction is a modal submit, otherwise false.
      */
-    public isModalSubmit(): boolean {
+    public isModalSubmit(): this is ModalInteraction {
         return this.data.type == 5;
+    }
+
+    public isAutoComplete(): this is AutoCompleteInteraction {
+        return this.data.type == 4;
     }
 
     /**
      * Checks if the interaction is a select menu.
      * @returns {boolean} True if the interaction is a select menu, false otherwise.
      */
-    public isSelectMenu(): boolean {
+    public isSelectMenu(): this is SelectMenuInteraction {
         return (
             this.data.type == 3 &&
             [
                 3 /* String */, 5 /* User */, 6 /* Role */, 7 /* Mentionable */,
                 8 /* Channel */,
             ].includes(this.data.data.component_type)
-        );
-    }
-
-    /**
-     * Displays a modal dialog for interaction.
-     *
-     * @param {TextInput} data - The text input data for the modal dialog.
-     * @returns A promise that resolves when the modal dialog is closed.
-     */
-    async showModal(data: TextInput) {
-        await this.iwr(
-            `${this.url}/interactions/${this.data.id}/${this.data.token}/callback`,
-            "post",
-            {
-                type: 0x9, //0x9 type -> APPLICATION_MODAL,
-                data,
-            }
         );
     }
 
@@ -198,7 +109,7 @@ export class Interaction extends Http {
                     "post",
                     {
                         type: 4, // 0x4 type -> CHANNEL_MESSAGE_WITH_SOURCE
-                        data: Interaction.parseMessage(data),
+                        data: BaseInteraction.parseMessage(data),
                     },
                     { with_response: true }
                 );
@@ -210,10 +121,6 @@ export class Interaction extends Http {
                 console.log((error as AxiosError).response.data);
             }
         }
-    }
-
-    async replyAutocomplete(data: InteractionReplyData) {
-        await this.iwr(`${this.url}/interactions/${this.data.id}/${this.data.token}/callback`, "post", data);
     }
 
     /**
@@ -259,16 +166,6 @@ export class Interaction extends Http {
     }
 
     /**
-     * Updates the interaction with the provided data.
-     *
-     * @param {InteractionReplyData} data - The data to update the interaction with.
-     * @returns void
-     */
-    async update(data: InteractionReplyData): Promise<void> {
-        await this.iwr(`${this.url}/interactions/${this.data.id}/${this.data.token}/callback`, "post", { type: 0x7, data: Interaction.parseMessage(data) });
-    }
-
-    /**
      * Sends a follow-up message in response to an interaction.
      * @param {InteractionReplyData} data - The data for the follow-up message.
      * @returns A Promise that resolves to the fetched reply
@@ -278,24 +175,10 @@ export class Interaction extends Http {
         const callback = await this.iwr(
             `${this.url}/webhooks/${this.client.user.id}/${this.data.token}`,
             "post",
-            Interaction.parseMessage(data)
+            BaseInteraction.parseMessage(data)
         );
         const msg = new Message(callback.data, this);
         return msg;
-    }
-
-    /**
-     * Defers the interaction response.
-     *
-     * This method sends a deferred response to the interaction, indicating that the bot is still processing the request.
-     *
-     * It sets the `type` property of the response to `0x5` (DEFERRED_CHANNEL_MESSAGE_WITH_SOURCE).
-     *
-     * It also sets the `deffered` property of the class instance to `true`.
-     */
-    async defer() {
-        await this.iwr(`${this.url}/interactions/${this.data.id}/${this.data.token}/callback`, "post", { type: 0x5 });
-        this.deffered = true;
     }
 
     /**
@@ -308,17 +191,12 @@ export class Interaction extends Http {
      * Sets the `deffered` flag to true.
      */
     async deferUpdate(): Promise<void> {
-        await this.iwr(`${this.url}/interactions/${this.data.id}/${this.data.token}/callback`, "post", { type: 0x6 });
+        await this.iwr(
+            `${this.url}/interactions/${this.data.id}/${this.data.token}/callback`,
+            "post",
+            { type: 0x6 }
+        );
         this.deffered = true;
-    }
-
-    /**
-     * Suspends the execution of the current function for the specified number of milliseconds.
-     * @param {number} ms - The number of milliseconds to sleep.
-     * @returns A promise that resolves after the specified number of milliseconds.
-     */
-    sleep(ms: number) {
-        return new Promise((resolve) => setTimeout(resolve, ms));
     }
 
     /**
@@ -346,7 +224,7 @@ export class Interaction extends Http {
                 for (const e of msg[i]) {
                     if (i === "embeds")
                         data.embeds.push(
-                            Interaction.parseEmbed(e as MessageEmbed)
+                            BaseInteraction.parseEmbed(e as MessageEmbed)
                         );
                     if (i === "components")
                         data.components.push(
@@ -358,10 +236,6 @@ export class Interaction extends Http {
         }
 
         return data;
-    }
-
-    private avatarURL(): string {
-        return `https://cdn.discordapp.com/avatars/${this.user.id}/${this.user.avatar}.png`;
     }
 
     /**
@@ -453,7 +327,7 @@ export interface InteractionData {
  * Represents an interaction option.
  * @interface
  */
-declare interface InteractionOption {
+export interface InteractionOption {
     type: number;
     name: string;
     description: string;
@@ -496,7 +370,7 @@ export interface InteractionReplyData {
     flags?: number;
     content?: string;
     embeds?: MessageEmbed[];
-    components?: MessageActionRow<any>[];
+    components?: MessageActionRow<any>[]; // eslint-disable-line @typescript-eslint/no-explicit-any
     files?: MessageAttachment[];
     attachments?: MessageAttachment[];
 }
@@ -510,5 +384,5 @@ declare interface InteractionReplyFormatted {
     content?: string;
     embeds?: MessageEmbedData[];
     components?: MessageComponentData[];
-    attachments?: any[];
+    attachments?: any[]; // eslint-disable-line @typescript-eslint/no-explicit-any
 }
