@@ -74,8 +74,6 @@ export class BaseInteraction extends Base {
                 );
 
                 return new Message(callback.data.resource.message, this);
-
-                // console.log(callback.data)
             } catch (error) {
                 console.log((error as AxiosError).response.data);
             }

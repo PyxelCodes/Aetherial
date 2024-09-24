@@ -102,7 +102,6 @@ export class Client extends EventEmitter {
                 return res.status(401).send("Invalid request signature");
 
             if ((req.body as ApiPing).type === 1) {
-                console.log("Received PING");
                 return res.send({ type: 1 });
             }
 

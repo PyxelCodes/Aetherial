@@ -72,7 +72,7 @@ export class Http {
         url: string,
         alreadyReplied = false
     ) {
-        const form = this.createFormDataFileBody({ data: body, type: 4 });
+        const form = this.createFormDataFileBody({ data: body, type: 4 }, alreadyReplied);
         try {
             const res = await axios({
                 method: alreadyReplied ? "patch" : "post",
@@ -107,7 +107,7 @@ export class Http {
     private createFormDataFileBody(data: {
         data: InteractionReplyData;
         type: number;
-    }) {
+    }, isPATCH = false) {
         const body = data.data;
         const form = new FormData();
         let j = 0;
@@ -126,8 +126,7 @@ export class Http {
             j++;
         }
 
-        form.append("payload_json", JSON.stringify({ type: 0x4, data: body }));
-        console.log(body);
+        form.append("payload_json", JSON.stringify(isPATCH ? body : { type: 0x4, data: body }));
         const isIterable = (obj: ArrayLike<MessageAttachment>) =>
             obj != null && typeof obj[Symbol.iterator] === "function";
 
@@ -135,10 +134,6 @@ export class Http {
 
         let i = 0;
         for (const file of body.files) {
-            console.log(`files[${i}]`, file.attachment, {
-                filename: file.name.replace("\r\n", "").replace("\n", ""),
-                contentType: `image/png`,
-            });
             form.append(`files[${i}]`, file.attachment, {
                 filename: file.name.replace("\r\n", "").replace("\n", ""),
                 contentType: `image/png`,
