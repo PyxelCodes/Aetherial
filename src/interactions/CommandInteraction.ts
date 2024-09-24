@@ -1,12 +1,13 @@
 import { FastifyReply } from "fastify";
-import { Client, InteractionData, TextChannel } from "..";
-import { BaseInteraction } from "./BaseInteraction";
+import { Client, InteractionData, Message, TextChannel } from "..";
+import { BaseInteraction, InteractionReplyData } from "./BaseInteraction";
 
 export class CommandInteraction extends BaseInteraction {
     data: InteractionData;
     res: FastifyReply;
     client: Client;
     channel: TextChannel;
+    message?: Message;
 
     constructor(data: InteractionData, res: FastifyReply, client: Client) {
         super(data, res, client);
@@ -14,6 +15,18 @@ export class CommandInteraction extends BaseInteraction {
         this.res = res;
         this.client = client;
         this.channel = new TextChannel(this);
+    }
+
+    async reply(data: InteractionReplyData) {
+        const s = await super.reply(data);
+        this.message = s;
+        return s;
+    }
+
+    async editReply(data: InteractionReplyData) {
+        const s = await super.editReply(data);
+        this.message = s;
+        return s;
     }
 
     get guild() {
@@ -31,5 +44,4 @@ export class CommandInteraction extends BaseInteraction {
     set commandNmae(name: string) {
         this.data.data.name = name;
     }
-
 }
