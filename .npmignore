@@ -5,3 +5,6 @@ src
 docs
 .vscode
 .github
+tests
+coverage
+.yarn

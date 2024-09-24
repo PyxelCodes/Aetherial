@@ -23,10 +23,7 @@ export class MessageSelectMenu extends MessageComponent<MessageSelectMenu> {
 
     public formatOption(option: MessageSelectMenuOptions) {
         if (option.emoji) { // @ts-expect-error The api wants it like this -> type mismatch
-            option.emoji = {
-                name: option.emoji.match(/([a-zA-Z_])+/gm)[0],
-                id: option.emoji.match(/([0-9])+/gm)[0]
-            };
+            option.emoji = this.parseEmoji(option.emoji) ?? undefined;
         }
 
         return option;
@@ -80,7 +77,7 @@ export class MessageSelectMenu extends MessageComponent<MessageSelectMenu> {
     }
 }
 
-declare interface MessageSelectMenuOptions {
+export interface MessageSelectMenuOptions {
     label: string;
     value: string;
     description?: string;
