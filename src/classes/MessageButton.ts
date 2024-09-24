@@ -1,5 +1,5 @@
-import { MessageComponent } from './MessageComponent';
-import { IMessageButton } from './types';
+import { MessageComponent } from "./MessageComponent";
+import { IMessageButton } from "./types";
 
 export class MessageButton
     extends MessageComponent<MessageButton>
@@ -21,20 +21,8 @@ export class MessageButton
     }
 
     public setEmoji(emoji: string) {
-        if (!emoji) return this;
+        this.emoji = this.parseEmoji(emoji) ?? undefined;
 
-        if (emoji.length == 1) {
-            this.emoji = { name: emoji, id: emoji };
-            return this;
-        }
-
-        const formattedEmoji = {
-            // Regex is so annoying sometimes
-            name: emoji.match(/([a-zA-Z_])+/gm)[0],
-            id: emoji.match(/([0-9])+/gm).slice(-1)[0]
-        };
-
-        this.emoji = formattedEmoji;
         return this;
     }
 
@@ -44,21 +32,21 @@ export class MessageButton
     }
 
     public setStyle(style: number | string) {
-        if (typeof style === 'string') {
+        if (typeof style === "string") {
             switch (style) {
-                case 'PRIMARY':
+                case "PRIMARY":
                     style = 1;
                     break;
 
-                case 'SECONDARY':
+                case "SECONDARY":
                     style = 2;
                     break;
 
-                case 'SUCCESS':
+                case "SUCCESS":
                     style = 3;
                     break;
 
-                case 'DANGER':
+                case "DANGER":
                     style = 4;
                     break;
 
@@ -79,7 +67,7 @@ export class MessageButton
                 label: this.label,
                 emoji: this.emoji,
                 url: this.url,
-                disabled: this.disabled
+                disabled: this.disabled,
             };
         } else
             return {
@@ -89,7 +77,7 @@ export class MessageButton
                 emoji: this.emoji,
                 custom_id: this.custom_id,
                 url: this.url,
-                disabled: this.disabled
+                disabled: this.disabled,
             };
     }
 }

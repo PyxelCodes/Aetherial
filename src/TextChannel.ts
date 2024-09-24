@@ -1,13 +1,14 @@
-import { Interaction, InteractionReplyData, Message } from ".";
+import { InteractionReplyData, Message } from ".";
+import { BaseInteraction } from "./interactions/BaseInteraction";
 
 /**
  * Represents a text channel in a Discord interaction.
  */
 export class TextChannel {
-    interaction: Interaction;
+    interaction: BaseInteraction;
     id: string;
 
-    constructor(parent: Interaction) {
+    constructor(parent: BaseInteraction) {
         this.interaction = parent;
         this.id = parent.data.channel_id;
     }
@@ -31,7 +32,7 @@ export class TextChannel {
         const res = await this.interaction.iwr(
             `https://discord.com/api/v9/channels/${this.id}/messages`,
             "post",
-            Interaction.parseMessage(data)
+            BaseInteraction.parseMessage(data)
         );
 
         if (!res?.data)

@@ -1,4 +1,4 @@
-import { Interaction } from './Interaction';
+import { BaseInteraction } from './interactions/BaseInteraction';
 
 /**
  * Represents a class for handling interaction options.
@@ -6,7 +6,7 @@ import { Interaction } from './Interaction';
 export class InteractionOptions {
 
     data: any; // eslint-disable-line
-    interaction: Interaction;
+    interaction: BaseInteraction;
 
     /**
      * Constructs a new instance of the InteractionOptions class.
@@ -14,7 +14,7 @@ export class InteractionOptions {
      * @param data - The data for the InteractionOptions.
      * @param interaction - The interaction associated with the InteractionOptions.
      */
-    constructor(data: any, interaction: Interaction) { // eslint-disable-line
+    constructor(data: any, interaction: BaseInteraction) { // eslint-disable-line
         this.data = data;
         this.interaction = interaction;
     }

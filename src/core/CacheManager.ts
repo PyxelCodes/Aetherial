@@ -40,7 +40,7 @@ export interface User {
     avatar_decoration?: string;
     public_flags: number;
 }
-declare interface Guild {
+export interface Guild {
     id: string;
     name: string;
     icon: string;
@@ -49,7 +49,8 @@ declare interface Guild {
     features: string[];
     permissions_new: string;
 }
-declare interface GuildMember {
+export interface GuildMember {
+    id: string;
     user: User;
     nick: string;
     avatar: string;

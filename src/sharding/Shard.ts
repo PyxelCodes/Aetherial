@@ -284,6 +284,9 @@ interface IDiscordGatewayOp {
 }
 
 export interface Guild {
+    name: string,
+    icon: string,
+    owner: string
     id: string;
     members: IMember[];
     presences: PresenceState[];

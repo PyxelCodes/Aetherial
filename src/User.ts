@@ -1,7 +1,7 @@
 import { Client } from "./Client";
 import { Http } from "./Http";
-import { InteractionReplyData } from "./Interaction";
 import { User as CacheUser } from "./core/CacheManager";
+import { InteractionReplyData } from "./interactions/BaseInteraction";
 
 /**
  * Represents a User.

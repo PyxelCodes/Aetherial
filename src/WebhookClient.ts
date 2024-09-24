@@ -1,5 +1,5 @@
 import axios from 'axios';
-import { Interaction, InteractionReplyData } from './Interaction';
+import { BaseInteraction, InteractionReplyData } from './interactions/BaseInteraction';
 
 /**
  * Represents a WebhookClient used for sending data to a Discord webhook.
@@ -49,7 +49,7 @@ export class WebhookClient {
         try {
             await axios.post(
                 `https://discord.com/api/webhooks/${this.id}/${this.token}`,
-                Interaction.parseMessage(data)
+                BaseInteraction.parseMessage(data)
             );
         } catch (e) {
             console.log(e);

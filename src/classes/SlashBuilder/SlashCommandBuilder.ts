@@ -83,7 +83,7 @@ export class SlashCommandBuilder {
 
 type inputFunction<T> = (input: T) => T;
 
-class CommonBuilder {
+export class CommonBuilder {
     constructor() {}
     public required: boolean = false;
     public name: string;
@@ -121,7 +121,7 @@ export enum SlashCommandBuilderOptionType {
     NUMBER = 10
 }
 
-class RoleBuilder extends CommonBuilder {
+export class RoleBuilder extends CommonBuilder {
     protected readonly type = SlashCommandBuilderOptionType.ROLE;
     public readonly role_types: any[] = [];
     public readonly autocomplete: boolean = false;
@@ -140,7 +140,7 @@ class RoleBuilder extends CommonBuilder {
     }
 }
 
-class StringBuilder extends CommonBuilder {
+export class StringBuilder extends CommonBuilder {
     protected readonly type = SlashCommandBuilderOptionType.STRING;
     public readonly choices: any[] = [];
     constructor() {
@@ -165,7 +165,7 @@ class StringBuilder extends CommonBuilder {
     }
 }
 
-class BooleanBuilder extends CommonBuilder {
+export class BooleanBuilder extends CommonBuilder {
     protected readonly type = SlashCommandBuilderOptionType.BOOLEAN;
     constructor() {
         super();
@@ -176,7 +176,7 @@ class BooleanBuilder extends CommonBuilder {
     }
 }
 
-class ChannelBuilder extends CommonBuilder {
+export class ChannelBuilder extends CommonBuilder {
     protected readonly type = SlashCommandBuilderOptionType.CHANNEL;
     public readonly channel_types: any[] = [];
     constructor() {
@@ -194,7 +194,7 @@ class ChannelBuilder extends CommonBuilder {
     }
 }
 
-class IntegerBuilder extends CommonBuilder {
+export class IntegerBuilder extends CommonBuilder {
     protected readonly type = SlashCommandBuilderOptionType.INTEGER;
     public readonly choices: any[] = [];
     public readonly min: number = -2147483648;
@@ -218,7 +218,7 @@ class IntegerBuilder extends CommonBuilder {
     }
 }
 
-class UserBuilder extends CommonBuilder {
+export class UserBuilder extends CommonBuilder {
     protected readonly type = SlashCommandBuilderOptionType.USER;
     constructor() {
         super();
