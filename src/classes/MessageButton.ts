@@ -1,5 +1,5 @@
-import { MessageComponent } from './MessageComponent';
-import { IMessageButton } from './types';
+import { MessageComponent } from "./MessageComponent";
+import { IMessageButton } from "./types";
 
 export class MessageButton
     extends MessageComponent<MessageButton>
@@ -23,18 +23,32 @@ export class MessageButton
     public setEmoji(emoji: string) {
         if (!emoji) return this;
 
-        if (emoji.length == 1) {
-            this.emoji = { name: emoji, id: emoji };
+        const unicodeEmojiRegex =
+            /^[\u{1F600}-\u{1F64F}\u{1F300}-\u{1F5FF}\u{1F680}-\u{1F6FF}\u{1F700}-\u{1F77F}\u{1F780}-\u{1F7FF}\u{1F800}-\u{1F8FF}\u{1F900}-\u{1F9FF}\u{1FA00}-\u{1FAFF}]+$/u;
+        const emojiWithIdRegex = /^<([a-zA-Z_]+):(\d+)>$/;
+        const emojiNameOnlyRegex = /^:([a-zA-Z_]+):$/;
+
+        if (emoji.match(unicodeEmojiRegex)) {
+            // Case: Unicode emoji
+            this.emoji = { id: null, name: emoji };
             return this;
         }
 
-        const formattedEmoji = {
-            // Regex is so annoying sometimes
-            name: emoji.match(/([a-zA-Z_])+/gm)[0],
-            id: emoji.match(/([0-9])+/gm).slice(-1)[0]
-        };
+        const emojiWithIdMatch = emoji.match(emojiWithIdRegex);
+        if (emojiWithIdMatch) {
+            // Case: <emoji_name:id>
+            this.emoji = { id: emojiWithIdMatch[2], name: emojiWithIdMatch[1] };
+            return this;
+        }
 
-        this.emoji = formattedEmoji;
+        const emojiNameOnlyMatch = emoji.match(emojiNameOnlyRegex);
+        if (emojiNameOnlyMatch) {
+            // Case: :emoji_name:
+            this.emoji = { id: null, name: emojiNameOnlyMatch[1] };
+            return this;
+        }
+
+        // If none of the cases matched, return this unchanged
         return this;
     }
 
@@ -44,21 +58,21 @@ export class MessageButton
     }
 
     public setStyle(style: number | string) {
-        if (typeof style === 'string') {
+        if (typeof style === "string") {
             switch (style) {
-                case 'PRIMARY':
+                case "PRIMARY":
                     style = 1;
                     break;
 
-                case 'SECONDARY':
+                case "SECONDARY":
                     style = 2;
                     break;
 
-                case 'SUCCESS':
+                case "SUCCESS":
                     style = 3;
                     break;
 
-                case 'DANGER':
+                case "DANGER":
                     style = 4;
                     break;
 
@@ -79,7 +93,7 @@ export class MessageButton
                 label: this.label,
                 emoji: this.emoji,
                 url: this.url,
-                disabled: this.disabled
+                disabled: this.disabled,
             };
         } else
             return {
@@ -89,7 +103,7 @@ export class MessageButton
                 emoji: this.emoji,
                 custom_id: this.custom_id,
                 url: this.url,
-                disabled: this.disabled
+                disabled: this.disabled,
             };
     }
 }
