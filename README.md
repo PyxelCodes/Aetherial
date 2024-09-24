@@ -8,7 +8,6 @@
       <a href="https://www.npmjs.com/package/aetherial"><img src="https://img.shields.io/npm/unpacked-size/aetherial" alt="npm unpacked size" /></a>
       <a href="https://github.com/pyxelcodes/aetherial/actions"><img src="https://github.com/Pyxelcodes/aetherial/actions/workflows/eslint.yml/badge.svg" alt="Tests status" /></a>
       <a href="https://codecov.io/gh/PyxelCodes/Aetherial" ><img src="https://img.shields.io/codecov/c/github/pyxelcodes/aetherial" alt="Code coverage" /></a>
-      
     </p>
 </div>
 
