@@ -1,4 +1,4 @@
-import { MessageButton } from '../';
+import { MessageButton } from '../src';
 
 describe('MessageButton', () => {
     let button: MessageButton;
