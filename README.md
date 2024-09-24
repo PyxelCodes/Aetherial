@@ -1,4 +1,3 @@
-
 <div align="center">
     <br />
     <h1> Aetherial </h1>
@@ -7,7 +6,9 @@
       <a href="https://npmjs.com/package/aetherial"> <img src="https://img.shields.io/npm/v/aetherial.svg?maxAge=3600" alt="npm version" /> </a>
       <a href="https://www.npmjs.com/package/aetherial"><img src="https://img.shields.io/npm/dt/aetherial.svg?maxAge=3600" alt="npm downloads" /></a>
       <a href="https://github.com/pyxelcodes/aetherial/actions"><img src="https://github.com/Pyxelcodes/aetherial/actions/workflows/eslint.yml/badge.svg" alt="Tests status" /></a>
+      <a href="https://codecov.io/gh/PyxelCodes/Aetherial" ><img src="https://codecov.io/gh/PyxelCodes/Aetherial/branch/main/graph/badge.svg?precision=2" alt="Code coverage" /></a>
     </p>
+</div>
 
 ## Usage
 
