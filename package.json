@@ -8,6 +8,10 @@
     "dist"
   ],
   "license": "MIT",
+  "author": "Pyxel <pyxeldev@icloud.com>",
+  "contributors": [
+    "Pyxel <pyxeldev@icloud.com>"
+  ],
   "scripts": {
     "build": "tsc",
     "lint": "eslint .",
@@ -15,6 +19,13 @@
     "test": "jest",
     "prepublishOnly": "yarn build",
     "testLocal": "cd test && tsc"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/PyxelCodes/Aetherial.git"
+  },
+  "bugs": {
+    "url": "https://github.com/PyxelCodes/Aetherial/issues"
   },
   "devDependencies": {
     "@eslint/js": "^9.11.1",
