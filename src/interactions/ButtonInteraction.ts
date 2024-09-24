@@ -1,12 +1,13 @@
 import { FastifyReply } from "fastify";
 import { Client, InteractionData, TextInput } from "..";
-import { BaseInteraction } from "./BaseInteraction";
+import { BaseComponentInteraction } from "./BaseComponentInteraction";
 
-export class ButtonInteraction extends BaseInteraction {
+export class ButtonInteraction extends BaseComponentInteraction {
+    data: InteractionData;
+
     constructor(data: InteractionData, res: FastifyReply, client: Client) {
         super(data, res, client);
-        // @ts-expect-error - types still need to be redone
-        this.message = new Message(this.data.message, this);
+        this.data = data;
     }
 
     /**

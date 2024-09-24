@@ -1,10 +1,17 @@
-import { FastifyReply } from "fastify";
-import { Client, InteractionData } from "..";
-import { BaseInteraction } from "./BaseInteraction";
+import { Client } from "..";
+import { Base } from "./Base";
 
-export class AutoCompleteInteraction extends BaseInteraction {
-    constructor(data: InteractionData, res: FastifyReply, client: Client) {
-        super(data, res, client);
+export class AutoCompleteInteraction extends Base {
+    constructor(data: AutoCompleteInteractionData, client: Client) {
+        super(data, client);
+    }
+
+    get id() {
+        return this.data.data.id;
+    }
+
+    get commandName() {
+        return this.data.data.name;
     }
 
     // @ts-expect-error - @Override as this is a different .options()
@@ -16,7 +23,6 @@ export class AutoCompleteInteraction extends BaseInteraction {
         return this.options.find((o) => o.focused);
     }
 
-    // @ts-expect-error - @Override as this is a different .reply()
     async reply(data: AutoCompleteChoice[]) {
         await this.iwr(
             `${this.url}/interactions/${this.data.id}/${this.data.token}/callback`,
@@ -29,6 +35,24 @@ export class AutoCompleteInteraction extends BaseInteraction {
             }
         );
     }
+}
+
+export interface AutoCompleteInteractionData {
+    type: 4;
+    id: string;
+    token: string;
+    data: {
+        id: string;
+        name: string;
+        type: number;
+        version: string;
+        options: {
+            type: number;
+            name: string;
+            value: string;
+            focused: boolean;
+        }[];
+    };
 }
 
 type AutoCompleteChoice = { name: string; value: string };

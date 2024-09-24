@@ -33,7 +33,7 @@ describe("MessageSelectMenu", () => {
         const option: MessageSelectMenuOptions = {
             label: "Option with Emoji",
             value: "emoji",
-            emoji: "<emoji:1234>",
+            emoji: "<:emoji:1234>",
         };
         const formattedOption = menu.formatOption(option);
         expect(formattedOption.emoji).toEqual({

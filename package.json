@@ -1,6 +1,6 @@
 {
   "name": "aetherial",
-  "version": "1.1.14-8",
+  "version": "1.2.4",
   "main": "./dist/index.js",
   "module": "./dist/index.mjs",
   "types": "./dist/types/index.d.ts",
@@ -22,7 +22,7 @@
   },
   "repository": {
     "type": "git",
-    "url": "https://github.com/PyxelCodes/Aetherial.git"
+    "url": "git+https://github.com/PyxelCodes/Aetherial.git"
   },
   "bugs": {
     "url": "https://github.com/PyxelCodes/Aetherial/issues"
@@ -47,8 +47,8 @@
     "axios": "^1.7.7",
     "buffer-image-size": "^0.6.4",
     "colors": "^1.4.0",
-    "fastify": "^5.0.0",
-    "fastify-raw-body": "^5.0.0",
+    "fastify": "4.28.1",
+    "fastify-raw-body": "4.3.0",
     "signale": "^1.4.0",
     "tweetnacl": "^1.0.3",
     "ws": "^8.18.0"

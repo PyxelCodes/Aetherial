@@ -6,76 +6,36 @@ import {
     MessageActionRow,
     MessageAttachment,
     MessageEmbed,
+    User,
 } from "..";
-import { CommandInteraction } from "./CommandInteraction";
-import { ButtonInteraction } from "./ButtonInteraction";
-import { Http } from "../Http";
 import { AxiosError } from "axios";
 import { MessageEmbedData } from "../classes/MessageEmbed";
-import { AutoCompleteInteraction } from "./AutoCompleteInteraction";
-import { ModalInteraction } from "./ModalInteraction";
-import { SelectMenuInteraction } from "./SelectMenuInteraction";
 import { MessageComponentData } from "../classes/MessageActionRow";
 import { MessageData } from "../Message";
+import { Base, InteractionDataLike } from "./Base";
 
-export class BaseInteraction extends Http {
-    data: InteractionData;
+
+export class BaseInteraction extends Base {
+    data: InteractionDataLike;
     res: FastifyReply;
     client: Client;
-    replied: boolean = false;
-    deffered: boolean = false;
+    readonly replied: boolean = false;
+    readonly deffered: boolean = false;
+    readonly createdTimestamp: number;
     options: InteractionOptions;
-    createdTimestamp: number;
+    user: User;
 
-    constructor(data: InteractionData, res: FastifyReply, client: Client) {
-        super(client.token);
+    constructor(data: InteractionDataLike, res: FastifyReply, client: Client) {
+        super(data, client);
         this.createdTimestamp = Date.now();
         this.res = res;
         this.data = data;
         this.client = client;
         this.options = new InteractionOptions(this.data.data, this);
-    }
 
-    /**
-     * Checks if the interaction is a command.
-     * @returns {boolean} Returns true if the interaction is a command, otherwise false.
-     */
-    public isCommand(): this is CommandInteraction {
-        return this.data.type == 2;
-    }
-
-    /**
-     * Checks if the interaction is a button.
-     * @returns {boolean} Returns true if the interaction is a button, otherwise false.
-     */
-    public isButton(): this is ButtonInteraction {
-        return this.data.type == 3 && this.data.data.component_type == 2;
-    }
-
-    /**
-     * Checks if the interaction is a modal submit.
-     * @returns {boolean} Returns true if the interaction is a modal submit, otherwise false.
-     */
-    public isModalSubmit(): this is ModalInteraction {
-        return this.data.type == 5;
-    }
-
-    public isAutoComplete(): this is AutoCompleteInteraction {
-        return this.data.type == 4;
-    }
-
-    /**
-     * Checks if the interaction is a select menu.
-     * @returns {boolean} True if the interaction is a select menu, false otherwise.
-     */
-    public isSelectMenu(): this is SelectMenuInteraction {
-        return (
-            this.data.type == 3 &&
-            [
-                3 /* String */, 5 /* User */, 6 /* Role */, 7 /* Mentionable */,
-                8 /* Channel */,
-            ].includes(this.data.data.component_type)
-        );
+        this.data = data as InteractionData;
+        this.user = new User(this.data.member.user);
+        this.client.cache.addUser(this.data.member.user);
     }
 
     /**
@@ -91,8 +51,7 @@ export class BaseInteraction extends Http {
         if (this.replied || this.deffered) {
             return await this.editReply(data);
         }
-
-        this.replied = true;
+        Reflect.set(this, "replied", true);
 
         if (data.files) {
             const callback = await this.iwrFiles(
@@ -196,7 +155,7 @@ export class BaseInteraction extends Http {
             "post",
             { type: 0x6 }
         );
-        this.deffered = true;
+        Reflect.set(this, "deffered", true);
     }
 
     /**

@@ -23,7 +23,7 @@ describe("MessageButton", () => {
     });
 
     test("should set the emoji correctly when passed an emoji string with name and id", () => {
-        button.setEmoji("<emoji:1234>");
+        button.setEmoji("<:emoji:1234>");
         expect(button.emoji).toEqual({ name: "emoji", id: "1234" });
     });
 

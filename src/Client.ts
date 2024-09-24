@@ -7,7 +7,10 @@ import { Cache } from "./core/Cache";
 import { SlashCommandBuilder } from "./classes/SlashBuilder/SlashCommandBuilder";
 import { REST } from "./rest/rest";
 import nacl from "tweetnacl";
-import { AutoCompleteInteraction } from "./interactions/AutoCompleteInteraction";
+import {
+    AutoCompleteInteraction,
+    AutoCompleteInteractionData,
+} from "./interactions/AutoCompleteInteraction";
 import { CommandInteraction } from "./interactions/CommandInteraction";
 import { ModalInteraction } from "./interactions/ModalInteraction";
 import { SelectMenuInteraction } from "./interactions/SelectMenuInteraction";
@@ -105,7 +108,9 @@ export class Client extends EventEmitter {
 
             res.code(202); // this behaves sooo weird
 
-            const iData = req.body as InteractionData;
+            const iData = req.body as
+                | InteractionData
+                | AutoCompleteInteractionData;
 
             if (iData.type == 0x2)
                 return this.emit(
@@ -125,7 +130,10 @@ export class Client extends EventEmitter {
             if (iData.type == 0x4)
                 return this.emit(
                     "interactionCreate",
-                    new AutoCompleteInteraction(iData, res, this)
+                    new AutoCompleteInteraction(
+                        iData as AutoCompleteInteractionData,
+                        this
+                    )
                 );
             if (
                 iData.type == 0x3 &&

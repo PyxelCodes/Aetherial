@@ -1,5 +1,5 @@
 import { FastifyReply } from "fastify";
-import { Client, InteractionData, TextChannel, User } from "..";
+import { Client, InteractionData, TextChannel } from "..";
 import { BaseInteraction } from "./BaseInteraction";
 
 export class CommandInteraction extends BaseInteraction {
@@ -7,7 +7,6 @@ export class CommandInteraction extends BaseInteraction {
     res: FastifyReply;
     client: Client;
     channel: TextChannel;
-    user: User;
 
     constructor(data: InteractionData, res: FastifyReply, client: Client) {
         super(data, res, client);
@@ -15,9 +14,6 @@ export class CommandInteraction extends BaseInteraction {
         this.res = res;
         this.client = client;
         this.channel = new TextChannel(this);
-
-        this.user = new User(this.data.member.user);
-        this.client.cache.addUser(this.data.member.user);
     }
 
     get guild() {
