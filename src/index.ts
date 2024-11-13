@@ -21,7 +21,7 @@ export { Shard } from "./sharding/Shard";
 export { ShardingManager } from "./sharding/ShardingManager";
 export { ShardInteraction } from "./sharding/ShardInteraction";
 
-export { Client, Command, Button } from "./Client";
+export { Client, Command, Button, ICommandArgument } from "./Client";
 export { IWRError } from "./Errors";
 export { BaseInteraction } from "./interactions/BaseInteraction";
 export { AutoCompleteInteraction } from "./interactions/AutoCompleteInteraction";
