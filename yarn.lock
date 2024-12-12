@@ -1501,7 +1501,7 @@ __metadata:
     colors: "npm:^1.4.0"
     eslint: "npm:^9.11.1"
     fastify: "npm:4.28.1"
-    fastify-raw-body: "npm:4.3.0"
+    fastify-raw-body: "npm:5.0.0"
     jest: "npm:^29.7.0"
     jsdoc-to-markdown: "npm:^9.1.1"
     signale: "npm:^1.4.0"
@@ -2915,14 +2915,21 @@ __metadata:
   languageName: node
   linkType: hard
 
-"fastify-raw-body@npm:4.3.0":
-  version: 4.3.0
-  resolution: "fastify-raw-body@npm:4.3.0"
+"fastify-plugin@npm:^5.0.0":
+  version: 5.0.1
+  resolution: "fastify-plugin@npm:5.0.1"
+  checksum: 10c0/c5e5932e7b8c5713ff881adeade3e8ee8fc288e8249d79cd193a2a2438eef1ad58ae5814f12835acbf04025dbddf2628787cd845f3e550dee847f494a08f7c5b
+  languageName: node
+  linkType: hard
+
+"fastify-raw-body@npm:5.0.0":
+  version: 5.0.0
+  resolution: "fastify-raw-body@npm:5.0.0"
   dependencies:
-    fastify-plugin: "npm:^4.0.0"
-    raw-body: "npm:^2.5.1"
+    fastify-plugin: "npm:^5.0.0"
+    raw-body: "npm:^3.0.0"
     secure-json-parse: "npm:^2.4.0"
-  checksum: 10c0/3260ab2fc3483a1668442b0a2b60a3f671948d8fc6e7a811ac782cfc28d31d8f064e7b3835ca21cb542d41c4a2a7bc84dd5c18ef0c38f90d7387dd6bbb83161d
+  checksum: 10c0/b5af3fb96fb90eedc16be2d801d5e9fd1ef624c28f8014b1dc7d1dfadd361595da5c20bfb65e68adbd4f6b3f09aeba8b639fc138abbf8174f8676025b24f895c
   languageName: node
   linkType: hard
 
@@ -3452,7 +3459,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"iconv-lite@npm:^0.6.2":
+"iconv-lite@npm:0.6.3, iconv-lite@npm:^0.6.2":
   version: 0.6.3
   resolution: "iconv-lite@npm:0.6.3"
   dependencies:
@@ -5377,7 +5384,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"raw-body@npm:2.5.2, raw-body@npm:^2.5.1":
+"raw-body@npm:2.5.2":
   version: 2.5.2
   resolution: "raw-body@npm:2.5.2"
   dependencies:
@@ -5386,6 +5393,18 @@ __metadata:
     iconv-lite: "npm:0.4.24"
     unpipe: "npm:1.0.0"
   checksum: 10c0/b201c4b66049369a60e766318caff5cb3cc5a900efd89bdac431463822d976ad0670912c931fdbdcf5543207daf6f6833bca57aa116e1661d2ea91e12ca692c4
+  languageName: node
+  linkType: hard
+
+"raw-body@npm:^3.0.0":
+  version: 3.0.0
+  resolution: "raw-body@npm:3.0.0"
+  dependencies:
+    bytes: "npm:3.1.2"
+    http-errors: "npm:2.0.0"
+    iconv-lite: "npm:0.6.3"
+    unpipe: "npm:1.0.0"
+  checksum: 10c0/f8daf4b724064a4811d118745a781ca0fb4676298b8adadfd6591155549cfea0a067523cf7dd3baeb1265fecc9ce5dfb2fc788c12c66b85202a336593ece0f87
   languageName: node
   linkType: hard
 
