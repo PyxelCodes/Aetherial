@@ -52,6 +52,27 @@ export class Shard extends EventEmitter {
         return this.ping_state_ACK - this.ping_state_srv;
     }
 
+    public updatePresence(data: {
+        status: "online" | "dnd" | "idle" | "invisible" | "offline";
+        name: string;
+    }) {
+        const payload = {
+            op: 3,
+            d: {
+                since: Date.now(),
+                activities: [
+                    {
+                        name: data.name,
+                        type: 0,
+                    },
+                ],
+                status: data.status,
+                afk: data.status == "invisible" || data.status == "offline",
+            },
+        };
+        this.sendMessage(payload);
+    }
+
     private async message(data: RawData) {
         log(
             "Shard::message => ",
@@ -62,7 +83,7 @@ export class Shard extends EventEmitter {
         if (o instanceof OP_INTERACTION_CREATE) {
             this.emit("interactionCreate", o.interaction);
         } else if (o instanceof OP_HELLO) {
-            if(this.heartBeatTimer) clearInterval(this.heartBeatTimer);
+            if (this.heartBeatTimer) clearInterval(this.heartBeatTimer);
             this.heartbeatInterval = o.heartbeatInterval();
             this.heartBeatTimer = await this.startHeartbeat();
             if (!this.shouldAuthenticate) return;
@@ -138,7 +159,9 @@ export class Shard extends EventEmitter {
         switch (data.op) {
             case 11: // HEARTBEAT ACK
                 this.ping_state_ACK = Date.now();
-                log(`Shard::parseOp => HEARTBEAT ACK ping acknowledged ${this.ping}ms`);
+                log(
+                    `Shard::parseOp => HEARTBEAT ACK ping acknowledged ${this.ping}ms`
+                );
                 break;
             case 10: // HELLO
                 return new OP_HELLO(data);
@@ -284,9 +307,9 @@ interface IDiscordGatewayOp {
 }
 
 export interface Guild {
-    name: string,
-    icon: string,
-    owner: string
+    name: string;
+    icon: string;
+    owner: string;
     id: string;
     members: IMember[];
     presences: PresenceState[];
