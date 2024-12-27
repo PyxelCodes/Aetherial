@@ -9,22 +9,27 @@ import {
 import sizeOf from "buffer-image-size";
 import FormData from "form-data";
 
+/**
+*
+* The class used to interact with tht Discord API.
+*
+*/
 export class Http {
     public url = `https://discord.com/api/v10`;
     private token: string;
     constructor(token: string) {
         this.token = token;
     }
-
     /**
-     * Sends an HTTP request to the specified URL using Axios.
-     *
-     * @param {string} url - The URL to send the request to.
-     * @param {Client | Shard} client - The client object used for authorization.
-     * @param {string} type - The type of HTTP request (e.g., "get", "post").
-     * @param body - The request body (optional).
-     * @returns {Promise<AxiosResponse<any, any>>} A Promise that resolves to the AxiosResponse object.
-     */
+        * Sends an HTTP request to the specified URL using Axios.
+        *
+        * @param {string} url - The URL to send the request to.
+        * @param {string} [type] - The type of HTTP request (e.g., "get", "post").
+        * @param {any} [body] - The request body (optional).
+        * @param {any} [queryString] - The query string parameters (optional).
+        * @returns {Promise<AxiosResponse<any, any>>} A Promise that resolves to the AxiosResponse object.
+        * @throws {AxiosError} Throws an error if the request fails.
+        */
     async iwr(
         url: string,
         type?: string,
@@ -60,13 +65,14 @@ export class Http {
     }
 
     /**
-     * Sends a form data request with interaction reply data to the specified URL.
-     *
-     * @param {InteractionReplyData} body - The interaction reply data.
-     * @param {string} url - The URL to send the request to.
-     * @param {boolean} alreadyReplied - Optional parameter indicating if the reply has already been sent. Default is false.
-     * @returns A promise that resolves to the response from the server.
-     */
+       * Sends a form data request with interaction reply data to the specified URL.
+       *
+       * @param {InteractionReplyData} body - The interaction reply data.
+       * @param {string} url - The URL to send the request to.
+       * @param {boolean} [alreadyReplied=false] - Optional parameter indicating if the reply has already been sent. Default is false.
+       * @returns {Promise<AxiosResponse<any, any>>} A promise that resolves to the response from the server.
+       * @throws {AxiosError} Throws an error if the request fails.
+       */
     async iwrFiles(
         body: InteractionReplyData,
         url: string,
@@ -93,17 +99,24 @@ export class Http {
                     console.log(JSON.stringify(error.response.data, null, 2));
                 if (!error.response?.data?.message) console.error(error);
                 console.info(
-                    `Request URL: ${
-                        url.replace(
-                            /\/webhooks\/\d+\/[a-zA-Z0-9_-]+/g,
-                            "/webhooks/<token>"
-                        ).magenta
+                    `Request URL: ${url.replace(
+                        /\/webhooks\/\d+\/[a-zA-Z0-9_-]+/g,
+                        "/webhooks/<token>"
+                    ).magenta
                     }`
                 );
             }
         }
     }
-
+    /**
+        * Creates a FormData object with the specified interaction reply data and type.
+        *
+        * @param {Object} data - The data object containing interaction reply data and type.
+        * @param {InteractionReplyData} data.data - The interaction reply data.
+        * @param {number} data.type - The type of interaction.
+        * @param {boolean} [isPATCH=false] - Optional parameter indicating if the request is a PATCH request. Default is false.
+        * @returns {FormData} The FormData object containing the interaction reply data.
+        */
     private createFormDataFileBody(data: {
         data: InteractionReplyData;
         type: number;
