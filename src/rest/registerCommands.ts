@@ -6,7 +6,8 @@ export async function registerCommands(
     token: string,
     guildId?: string
 ) {
-    const cmds = Array.from(commands, ([n, v]) => v).map((cmd) => { // eslint-disable-line @typescript-eslint/no-unused-vars
+    const cmds = Array.from(commands, ([n, v]) => v).map((cmd) => {
+        // eslint-disable-line @typescript-eslint/no-unused-vars
         let builder: SlashCommandBuilder = cmd.data;
         if (!builder) builder = new SlashCommandBuilder();
         builder.setName(cmd.name);
@@ -39,26 +40,26 @@ export async function registerCommands(
                     .red
             );
         }
-
-        try {
-            const uri = guildId ? `guilds/${guildId}/commands` : `commands`;
-            await axios.put(
-                `https://discord.com/api/v10/applications/${client.id}/${uri}`,
-                cmds,
-                { headers: { Authorization: `Bot ${token}` } }
+        return;
+    }
+    try {
+        const uri = guildId ? `guilds/${guildId}/commands` : `commands`;
+        await axios.put(
+            `https://discord.com/api/v10/applications/${client.id}/${uri}`,
+            cmds,
+            { headers: { Authorization: `Bot ${token}` } }
+        );
+    } catch (error) {
+        if (error instanceof AxiosError) {
+            console.error(`Failed to send commands to Discord API`.red);
+            console.log({
+                url: error.config.url,
+                response: error.response.data,
+            });
+            console.error(
+                `HTTP ${error.response?.status} ${error.response?.statusText}`
+                    .red
             );
-        } catch (error) {
-            if (error instanceof AxiosError) {
-                console.error(`Failed to send commands to Discord API`.red);
-                console.log({
-                    url: error.config.url,
-                    response: error.response.data,
-                });
-                console.error(
-                    `HTTP ${error.response?.status} ${error.response?.statusText}`
-                        .red
-                );
-            }
         }
     }
 }
