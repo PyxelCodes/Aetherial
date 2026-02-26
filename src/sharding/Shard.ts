@@ -129,9 +129,23 @@ export class Shard extends EventEmitter {
         return JSON.parse(data.toString()); // maybe ETF or zlib-stream later
     }
 
-    private resume() {
+    private sendResumePayload() {
+        this.sendMessage({
+            op: 6,
+            d: {
+                token: this.token,
+                session_id: this.sessionID,
+                seq: this.lastACK,
+            },
+        });
+    }
+
+    private async resume() {
         this.shouldAuthenticate = false; // don't send another OP_IDENTIFY on OP_READY from remote
         this.wss.close(1001, Buffer.from("Shard.resume() called"));
+        if (this.heartBeatTimer) {
+            clearInterval(this.heartBeatTimer);
+        }
         this.wss = new WebSocket(this.sessionURL);
 
         console.log(`Resuming shard ${this.shardId} on ${this.sessionURL}`);
@@ -140,17 +154,11 @@ export class Shard extends EventEmitter {
             this.emit("websocketResume", void 0);
 
             setTimeout(() => {
-                this.sendMessage({
-                    op: 6,
-                    d: {
-                        token: this.token,
-                        session_id: this.sessionID,
-                        seq: this.lastACK,
-                    },
-                });
-            }, 800);
+                this.sendResumePayload();
+            }, 1000);
         });
 
+        this.heartBeatTimer = await this.startHeartbeat();
         this.applyListeners();
     }
 
@@ -258,6 +266,7 @@ export class Shard extends EventEmitter {
     }
 
     private sendHeartbeat() {
+        if (this.wss.readyState !== WebSocket.OPEN) return;
         this.ping_state_srv = Date.now();
         this.sendMessage({
             op: 1,
